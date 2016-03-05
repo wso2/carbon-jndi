@@ -22,17 +22,18 @@ import org.osgi.framework.BundleReference;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.jndi.JNDIContextManager;
 
+import java.util.Hashtable;
+import java.util.Optional;
+
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.naming.NoInitialContextException;
 import javax.naming.spi.InitialContextFactory;
 import javax.naming.spi.NamingManager;
-import java.util.Hashtable;
-import java.util.Optional;
 
-import static org.wso2.carbon.jndi.internal.util.LambdaExceptionUtil.rethrowFunction;
 import static org.wso2.carbon.jndi.internal.Constants.OSGI_SERVICE_JNDI_BC;
+import static org.wso2.carbon.jndi.internal.util.LambdaExceptionUtil.rethrowFunction;
 
 /**
  * This class represents the default context factory which is used by the {@code DefaultContextFactoryBuilder}
@@ -157,13 +158,6 @@ public class DefaultContextFactory implements InitialContextFactory {
     private Optional<BundleContext> getBundleContextFromCurrentClassStack() {
         Optional<BundleContext> bundleContextOptional = Optional.empty();
 
-        // Creating a local class which extends SecurityManager to get the current execution
-        // stack as an array of classes
-        class DummySecurityManager extends SecurityManager {
-            public Class<?>[] getClassContext() {
-                return super.getClassContext();
-            }
-        }
         Class[] currentClassStack = new DummySecurityManager().getClassContext();
 
         int index;
@@ -212,6 +206,14 @@ public class DefaultContextFactory implements InitialContextFactory {
             return bundleContextOptional;
         } else {
             return getCallersBundleContext(Optional.ofNullable(classLoaderOptional.get().getParent()));
+        }
+    }
+
+    // Creating a local class which extends SecurityManager to get the current execution
+    // stack as an array of classes
+    static class DummySecurityManager extends SecurityManager {
+        public Class<?>[] getClassContext() {
+            return super.getClassContext();
         }
     }
 }

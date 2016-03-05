@@ -36,6 +36,13 @@ import org.wso2.carbon.jndi.osgi.factories.NullInitialContextFactory;
 import org.wso2.carbon.jndi.osgi.utils.DummyBundleClassLoader;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 
+import java.util.Arrays;
+import java.util.Dictionary;
+
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
+
 import javax.inject.Inject;
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -43,13 +50,6 @@ import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.spi.InitialContextFactory;
 import javax.naming.spi.InitialContextFactoryBuilder;
-
-import java.util.Arrays;
-import java.util.Dictionary;
-
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Map;
 
 import static org.testng.Assert.assertEquals;
 

@@ -22,6 +22,9 @@ import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.jndi.JNDIContextManager;
 
+/**
+ *  A {@code ServiceFactory} which supplies instance of the JNDIContextManager.
+ */
 public class JNDIContextManagerServiceFactory implements ServiceFactory<JNDIContextManager> {
 
     @Override

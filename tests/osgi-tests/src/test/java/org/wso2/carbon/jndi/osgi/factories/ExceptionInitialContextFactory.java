@@ -17,10 +17,11 @@
 */
 package org.wso2.carbon.jndi.osgi.factories;
 
+import java.util.Hashtable;
+
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.spi.InitialContextFactory;
-import java.util.Hashtable;
 
 public class ExceptionInitialContextFactory implements InitialContextFactory {
     @Override

@@ -17,8 +17,7 @@
 */
 package org.wso2.carbon.jndi.osgi.context;
 
-import org.wso2.carbon.jndi.internal.impl.NamingContext;
-import org.wso2.carbon.jndi.internal.impl.NamingEntry;
+import java.util.Hashtable;
 
 import javax.naming.Binding;
 import javax.naming.Context;
@@ -27,9 +26,6 @@ import javax.naming.NameClassPair;
 import javax.naming.NameParser;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.spi.InitialContextFactory;
-import javax.naming.spi.InitialContextFactoryBuilder;
-import java.util.Hashtable;
 
 public class TestContext implements Context {
 

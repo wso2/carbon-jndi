@@ -23,40 +23,67 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * TODO
+ * A Utility which provides a way to throw checked exceptions from the lambda expressions.
  */
 public final class LambdaExceptionUtil {
 
+    /**
+     * Represents a {@code Consumer} interface which can throw exceptions.
+     *
+     * @param <T> the type of the input to the operation
+     * @param <E> the type of Exception
+     */
     @FunctionalInterface
-    public interface Consumer_WithExceptions<T, E extends Exception> {
+    public interface ConsumerWithExceptions<T, E extends Exception> {
         void accept(T t) throws E;
     }
 
+    /**
+     * Represents a {@code BiConsumer} interface which can throw exceptions.
+     *
+     * @param <T> the type of the first input to the operation
+     * @param <U> the type of the second input to the operation
+     * @param <E> the type of Exception
+     */
     @FunctionalInterface
-    public interface BiConsumer_WithExceptions<T, U, E extends Exception> {
+    public interface BiConsumerWithExceptions<T, U, E extends Exception> {
         void accept(T t, U u) throws E;
     }
 
+    /**
+     * Represents a {@code Function} interface which can throw exceptions.
+     *
+     * @param <T> the type of the input to the function
+     * @param <R> the type of the result of the function
+     * @param <E> the type of Exception
+     */
     @FunctionalInterface
-    public interface Function_WithExceptions<T, R, E extends Exception> {
+    public interface FunctionWithExceptions<T, R, E extends Exception> {
         R apply(T t) throws E;
     }
 
+    /**
+     * Represents a {@code Supplier} interface which can throw exceptions.
+     *
+     * @param <T> the type of results supplied by this supplier
+     * @param <E> the type of Exception
+     */
     @FunctionalInterface
-    public interface Supplier_WithExceptions<T, E extends Exception> {
+    public interface SupplierWithExceptions<T, E extends Exception> {
         T get() throws E;
     }
 
+    /**
+     * Represents a {@code Runnable} interface which can throw exceptions.
+     *
+     * @param <E> the type of Exception
+     */
     @FunctionalInterface
-    public interface Runnable_WithExceptions<E extends Exception> {
+    public interface RunnableWithExceptions<E extends Exception> {
         void run() throws E;
     }
 
-    /**
-     * .forEach(rethrowConsumer(name -> System.out.println(Class.forName(name))));
-     * or .forEach(rethrowConsumer(ClassNameUtil::println));
-     */
-    public static <T, E extends Exception> Consumer<T> rethrowConsumer(Consumer_WithExceptions<T, E> consumer) {
+    public static <T, E extends Exception> Consumer<T> rethrowConsumer(ConsumerWithExceptions<T, E> consumer) {
         return t -> {
             try {
                 consumer.accept(t);
@@ -67,7 +94,7 @@ public final class LambdaExceptionUtil {
     }
 
     public static <T, U, E extends Exception> BiConsumer<T, U> rethrowBiConsumer(
-            BiConsumer_WithExceptions<T, U, E> biConsumer) {
+            BiConsumerWithExceptions<T, U, E> biConsumer) {
         return (t, u) -> {
             try {
                 biConsumer.accept(t, u);
@@ -81,7 +108,7 @@ public final class LambdaExceptionUtil {
      * .map(rethrowFunction(name -> Class.forName(name))) or .map(rethrowFunction(Class::forName))
      */
     public static <T, R, E extends Exception> Function<T, R> rethrowFunction(
-            Function_WithExceptions<T, R, E> function) {
+            FunctionWithExceptions<T, R, E> function) {
         return t -> {
             try {
                 return function.apply(t);
@@ -95,7 +122,7 @@ public final class LambdaExceptionUtil {
     /**
      * rethrowSupplier(() -> new StringJoiner(new String(new byte[]{77, 97, 114, 107}, "UTF-8"))),
      */
-    public static <T, E extends Exception> Supplier<T> rethrowSupplier(Supplier_WithExceptions<T, E> function) {
+    public static <T, E extends Exception> Supplier<T> rethrowSupplier(SupplierWithExceptions<T, E> function) {
         return () -> {
             try {
                 return function.get();
@@ -109,7 +136,7 @@ public final class LambdaExceptionUtil {
     /**
      * uncheck(() -> Class.forName("xxx"));
      */
-    public static void uncheck(Runnable_WithExceptions t) {
+    public static void uncheck(RunnableWithExceptions t) {
         try {
             t.run();
         } catch (Exception exception) {
@@ -120,7 +147,7 @@ public final class LambdaExceptionUtil {
     /**
      * uncheck(() -> Class.forName("xxx"));
      */
-    public static <R, E extends Exception> R uncheck(Supplier_WithExceptions<R, E> supplier) {
+    public static <R, E extends Exception> R uncheck(SupplierWithExceptions<R, E> supplier) {
         try {
             return supplier.get();
         } catch (Exception exception) {
@@ -132,7 +159,7 @@ public final class LambdaExceptionUtil {
     /**
      * uncheck(Class::forName, "xxx");
      */
-    public static <T, R, E extends Exception> R uncheck(Function_WithExceptions<T, R, E> function, T t) {
+    public static <T, R, E extends Exception> R uncheck(FunctionWithExceptions<T, R, E> function, T t) {
         try {
             return function.apply(t);
         } catch (Exception exception) {

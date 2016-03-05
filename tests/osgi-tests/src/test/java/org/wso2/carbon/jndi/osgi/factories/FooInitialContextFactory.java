@@ -19,10 +19,11 @@ package org.wso2.carbon.jndi.osgi.factories;
 
 import org.wso2.carbon.jndi.osgi.context.TestContext;
 
+import java.util.Hashtable;
+
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.spi.InitialContextFactory;
-import java.util.Hashtable;
 
 public class FooInitialContextFactory implements InitialContextFactory {
     @Override

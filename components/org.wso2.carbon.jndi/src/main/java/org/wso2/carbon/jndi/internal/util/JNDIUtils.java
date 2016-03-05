@@ -23,15 +23,16 @@ import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.naming.Context;
-import javax.naming.NamingException;
-import javax.naming.spi.InitialContextFactory;
-import javax.naming.spi.InitialContextFactoryBuilder;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Optional;
 import java.util.stream.Stream;
+
+import javax.naming.Context;
+import javax.naming.NamingException;
+import javax.naming.spi.InitialContextFactory;
+import javax.naming.spi.InitialContextFactoryBuilder;
 
 import static org.wso2.carbon.jndi.internal.util.LambdaExceptionUtil.rethrowFunction;
 

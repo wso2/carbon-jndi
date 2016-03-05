@@ -25,14 +25,23 @@ import org.slf4j.LoggerFactory;
 import org.wso2.carbon.jndi.internal.osgi.JNDIContextManagerServiceFactory;
 import org.wso2.carbon.jndi.internal.osgi.builders.DefaultContextFactoryBuilder;
 import org.wso2.carbon.jndi.internal.osgi.builders.DefaultObjectFactoryBuilder;
-import org.wso2.carbon.jndi.java.javaURLContextFactory;
+import org.wso2.carbon.jndi.java.JavaURLContextFactory;
+
+import java.util.Dictionary;
+import java.util.Hashtable;
 
 import javax.naming.spi.InitialContextFactory;
 import javax.naming.spi.NamingManager;
 import javax.naming.spi.ObjectFactory;
-import java.util.Dictionary;
-import java.util.Hashtable;
 
+
+/**
+ * An implementation of {@code BundleActivator} which initializes Carbon JNDI implementations.
+ * <p>
+ * Sets the default InitialContextFactoryBuilder and ObjectFactoryBuilder.
+ * <p>
+ * Registers default InitialContextFactory implementations as OSGi services.
+ */
 public class JNDIActivator implements BundleActivator {
 
     private static final Logger logger = LoggerFactory.getLogger(JNDIActivator.class);
@@ -46,7 +55,7 @@ public class JNDIActivator implements BundleActivator {
 
             Dictionary<String, String> propertyMap = new Hashtable<>();
             propertyMap.put("osgi.jndi.url.scheme", "java");
-            bundleContext.registerService(ObjectFactory.class, new javaURLContextFactory(), propertyMap);
+            bundleContext.registerService(ObjectFactory.class, new JavaURLContextFactory(), propertyMap);
 
             // InitialContextFactory Provider should be registered with its implementation class as well as the
             // InitialContextFactory class.
