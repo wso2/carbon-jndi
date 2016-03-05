@@ -18,7 +18,6 @@ package org.wso2.carbon.jndi.osgi.utils;
 import org.ops4j.pax.exam.ConfigurationFactory;
 import org.ops4j.pax.exam.CoreOptions;
 import org.ops4j.pax.exam.Option;
-import org.wso2.carbon.jndi.osgi.utils.OSGiTestUtils;
 
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
