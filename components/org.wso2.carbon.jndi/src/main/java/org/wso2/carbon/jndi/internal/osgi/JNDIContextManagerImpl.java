@@ -22,19 +22,21 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.jndi.JNDIContextManager;
 
+import java.util.Collection;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Optional;
+
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.NoInitialContextException;
 import javax.naming.directory.DirContext;
 import javax.naming.spi.InitialContextFactory;
 import javax.naming.spi.InitialContextFactoryBuilder;
-import java.util.Collection;
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.Optional;
 
-import static org.wso2.carbon.jndi.internal.util.JNDIUtils.*;
-
+import static org.wso2.carbon.jndi.internal.util.JNDIUtils.getInitialContextFromBuilder;
+import static org.wso2.carbon.jndi.internal.util.JNDIUtils.getInitialContextFromFactory;
+import static org.wso2.carbon.jndi.internal.util.JNDIUtils.getServiceReferences;
 
 /**
  * This class provides an implementation of JNDIContextManager interface.
@@ -44,11 +46,12 @@ public class JNDIContextManagerImpl implements JNDIContextManager {
     private static final String OBJECT_CLASS = "objectClass";
 
     private BundleContext bundleContext;
-    private ServiceRegistration<JNDIContextManager> serviceRegistration;
+//    private ServiceRegistration<JNDIContextManager> serviceRegistration;
 
-    public JNDIContextManagerImpl(BundleContext bundleContext, ServiceRegistration<JNDIContextManager> serviceRegistration) {
+    public JNDIContextManagerImpl(BundleContext bundleContext,
+                                  ServiceRegistration<JNDIContextManager> serviceRegistration) {
         this.bundleContext = bundleContext;
-        this.serviceRegistration = serviceRegistration;
+//        this.serviceRegistration = serviceRegistration;
     }
 
     @Override
@@ -58,6 +61,7 @@ public class JNDIContextManagerImpl implements JNDIContextManager {
         return new WrapperContext(bundleContext, initialContextInternal, environment);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Context newInitialContext(Map environment) throws NamingException {
         Hashtable<?, ?> envMap = new Hashtable(environment);

@@ -19,12 +19,19 @@ package org.wso2.carbon.jndi.internal.osgi.builders;
 
 import org.wso2.carbon.jndi.internal.osgi.factories.DefaultContextFactory;
 
+import java.util.Hashtable;
+
 import javax.naming.NamingException;
 import javax.naming.spi.InitialContextFactory;
 import javax.naming.spi.InitialContextFactoryBuilder;
-import java.util.Hashtable;
 
+/**
+ * An implementation of {@code InitialContextFactoryBuilder} interface which act as the default initial context
+ * factory builder which is set in the NamingManager. This is required for tradition java clients which uses the
+ * InitialContext API. (Not JNDIContextManager API)
+ */
 public class DefaultContextFactoryBuilder implements InitialContextFactoryBuilder {
+
     @Override
     public InitialContextFactory createInitialContextFactory(Hashtable<?, ?> environment) throws NamingException {
         return new DefaultContextFactory();

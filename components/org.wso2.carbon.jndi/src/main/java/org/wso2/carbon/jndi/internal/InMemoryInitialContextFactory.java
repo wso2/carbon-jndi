@@ -19,11 +19,16 @@ package org.wso2.carbon.jndi.internal;
 
 import org.wso2.carbon.jndi.internal.impl.NamingContext;
 
+import java.util.Hashtable;
+
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.spi.InitialContextFactory;
-import java.util.Hashtable;
 
+/**
+ *  This class is an implementation of {@code InitialContextFactory} which provides in-memory initial context
+ *  implementation.
+ */
 public class InMemoryInitialContextFactory implements InitialContextFactory {
 
     protected static volatile Context initialContext = null;

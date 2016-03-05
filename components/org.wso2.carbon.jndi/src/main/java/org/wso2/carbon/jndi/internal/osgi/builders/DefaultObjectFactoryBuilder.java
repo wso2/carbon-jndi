@@ -17,11 +17,17 @@
 */
 package org.wso2.carbon.jndi.internal.osgi.builders;
 
+import java.util.Hashtable;
+
 import javax.naming.NamingException;
 import javax.naming.spi.ObjectFactory;
 import javax.naming.spi.ObjectFactoryBuilder;
-import java.util.Hashtable;
 
+/**
+ * An implementation of {@code ObjectFactoryBuilder} interface which act as the default object factory builder
+ * which is set in the NamingManager. This is required for tradition java clients which uses the InitialContext API.
+ * (Not JNDIContextManager API)
+ */
 public class DefaultObjectFactoryBuilder implements ObjectFactoryBuilder {
 
     @Override

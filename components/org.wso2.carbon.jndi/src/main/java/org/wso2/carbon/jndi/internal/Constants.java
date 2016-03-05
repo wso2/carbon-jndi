@@ -26,7 +26,7 @@ package org.wso2.carbon.jndi.internal;
 public final class Constants {
 
     public static final String PACKAGE = "org.wso2.carbon.jndi.internal";
-    public static final String OSGi_JNDI_URL_SCHEME = "osgi.jndi.url.scheme";
+    public static final String OSGI_JNDI_URL_SCHEME = "osgi.jndi.url.scheme";
     public static final String SERVICE_RANKING = "service.ranking";
     public static final String SERVICE_ID = "service.id";
     public static final String OSGI_SERVICE_JNDI_BC = "osgi.service.jndi.bundleContext";

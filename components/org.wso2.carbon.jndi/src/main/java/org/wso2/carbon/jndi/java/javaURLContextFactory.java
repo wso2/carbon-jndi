@@ -18,15 +18,15 @@
 
 package org.wso2.carbon.jndi.java;
 
+import org.wso2.carbon.jndi.internal.impl.NamingContext;
+
 import java.util.Hashtable;
 
 import javax.naming.Context;
 import javax.naming.Name;
 import javax.naming.NamingException;
-import javax.naming.spi.InitialContextFactory;
 import javax.naming.spi.ObjectFactory;
 
-import org.wso2.carbon.jndi.internal.impl.NamingContext;
 
 /**
  * Context factory for the "java:" namespace.
@@ -43,9 +43,7 @@ import org.wso2.carbon.jndi.internal.impl.NamingContext;
  * {@link javax.naming.spi.NamingManager#getURLContext(java.lang.String, java.util.Hashtable)}.</li>
  * </ul>
  */
-public class javaURLContextFactory implements ObjectFactory {
-
-    public static final String MAIN = "Java";
+public class JavaURLContextFactory implements ObjectFactory {
 
     protected static volatile Context javaInitialContext = null;
 

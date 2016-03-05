@@ -19,11 +19,7 @@
 package org.wso2.carbon.jndi.internal.osgi;
 
 import org.osgi.framework.BundleContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.wso2.carbon.jndi.internal.Constants;
 import org.wso2.carbon.jndi.internal.util.JNDIUtils;
-import org.wso2.carbon.jndi.internal.util.StringManager;
 
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -41,8 +37,8 @@ import javax.naming.NamingException;
 import javax.naming.NoInitialContextException;
 import javax.naming.spi.ObjectFactory;
 
-import static org.wso2.carbon.jndi.internal.Constants.*;
-import static org.wso2.carbon.jndi.internal.util.JNDIUtils.*;
+import static org.wso2.carbon.jndi.internal.Constants.OSGI_JNDI_URL_SCHEME;
+import static org.wso2.carbon.jndi.internal.util.JNDIUtils.getService;
 import static org.wso2.carbon.jndi.internal.util.LambdaExceptionUtil.rethrowFunction;
 import static org.wso2.carbon.jndi.internal.util.LambdaExceptionUtil.rethrowSupplier;
 
@@ -51,8 +47,6 @@ import static org.wso2.carbon.jndi.internal.util.LambdaExceptionUtil.rethrowSupp
  * Wrapper for JNDI Context implementation.
  */
 public class WrapperContext implements Context {
-
-    private static final Logger logger = LoggerFactory.getLogger(WrapperContext.class);
 
     private BundleContext bundleContext;
 
@@ -65,34 +59,15 @@ public class WrapperContext implements Context {
      */
     protected final Hashtable<?, ?> env;
 
-
-    /**
-     * The string manager for this package.
-     */
-    protected static final StringManager sm = StringManager.getManager(Constants.PACKAGE);
-
-
     /**
      * Namespace URL.
      */
-    public static final String prefix = "java:";
-
-
-    /**
-     * Namespace URL length.
-     */
-    public static final int prefixLength = prefix.length();
-
-
-    /**
-     * Initial context prefix.
-     */
-    public static final String IC_PREFIX = "IC_";
+    public static final String PREFIX = "java:";
 
     public WrapperContext(BundleContext bundleContext, Optional<Context> deletedContext, Hashtable<?, ?> env) {
         this.bundleContext = bundleContext;
         this.backingContext = deletedContext;
-        this.env = env;
+        this.env = (Hashtable<?, ?>) env.clone();
     }
 
     /**
@@ -109,7 +84,7 @@ public class WrapperContext implements Context {
     public Object lookup(Name name) throws NamingException {
 
 //        if (log.isDebugEnabled()) {
-//            log.debug(sm.getString("selectorContext.methodUsingName", "lookup",
+//            log.debug(SM.getString("selectorContext.methodUsingName", "lookup",
 //                    name));
 //        }
 
@@ -131,7 +106,7 @@ public class WrapperContext implements Context {
     public Object lookup(String name) throws NamingException {
 
 //        if (log.isDebugEnabled()) {
-//            log.debug(sm.getString("selectorContext.methodUsingString", "lookup",
+//            log.debug(SM.getString("selectorContext.methodUsingString", "lookup",
 //                    name));
 //        }
 
@@ -299,7 +274,7 @@ public class WrapperContext implements Context {
     public NamingEnumeration<NameClassPair> list(Name name) throws NamingException {
 
 //        if (log.isDebugEnabled()) {
-//            log.debug(sm.getString("selectorContext.methodUsingName", "list",
+//            log.debug(SM.getString("selectorContext.methodUsingName", "list",
 //                    name));
 //        }
 
@@ -320,7 +295,7 @@ public class WrapperContext implements Context {
     public NamingEnumeration<NameClassPair> list(String name) throws NamingException {
 
 //        if (log.isDebugEnabled()) {
-//            log.debug(sm.getString("selectorContext.methodUsingString", "list",
+//            log.debug(SM.getString("selectorContext.methodUsingString", "list",
 //                    name));
 //        }
 
@@ -345,7 +320,7 @@ public class WrapperContext implements Context {
     public NamingEnumeration<Binding> listBindings(Name name) throws NamingException {
 
 //        if (log.isDebugEnabled()) {
-//            log.debug(sm.getString("selectorContext.methodUsingName",
+//            log.debug(SM.getString("selectorContext.methodUsingName",
 //                    "listBindings", name));
 //        }
 
@@ -366,7 +341,7 @@ public class WrapperContext implements Context {
     public NamingEnumeration<Binding> listBindings(String name) throws NamingException {
 
 //        if (log.isDebugEnabled()) {
-//            log.debug(sm.getString("selectorContext.methodUsingString",
+//            log.debug(SM.getString("selectorContext.methodUsingString",
 //                    "listBindings", name));
 //        }
 
@@ -431,7 +406,8 @@ public class WrapperContext implements Context {
      * @throws javax.naming.NameAlreadyBoundException            if name is already
      *                                                           bound
      * @throws javax.naming.directory.InvalidAttributesException if creation of the
-     *                                                           sub-context requires specification of mandatory attributes
+     *                                                           sub-context requires specification of
+     *                                                           mandatory attributes
      * @throws NamingException                                   if a jndi exception is encountered
      */
     @Override
@@ -448,7 +424,8 @@ public class WrapperContext implements Context {
      * @throws javax.naming.NameAlreadyBoundException            if name is already
      *                                                           bound
      * @throws javax.naming.directory.InvalidAttributesException if creation of the
-     *                                                           sub-context requires specification of mandatory attributes
+     *                                                           sub-context requires specification of
+     *                                                           mandatory attributes
      * @throws NamingException                                   if a jndi exception is encountered
      */
     @Override
@@ -471,7 +448,7 @@ public class WrapperContext implements Context {
     public Object lookupLink(Name name) throws NamingException {
 
 //        if (log.isDebugEnabled()) {
-//            log.debug(sm.getString("selectorContext.methodUsingName",
+//            log.debug(SM.getString("selectorContext.methodUsingName",
 //                    "lookupLink", name));
 //        }
 
@@ -492,7 +469,7 @@ public class WrapperContext implements Context {
     public Object lookupLink(String name) throws NamingException {
 
 //        if (log.isDebugEnabled()) {
-//            log.debug(sm.getString("selectorContext.methodUsingString",
+//            log.debug(SM.getString("selectorContext.methodUsingString",
 //                    "lookupLink", name));
 //        }
 
@@ -610,7 +587,7 @@ public class WrapperContext implements Context {
      */
     @Override
     public Hashtable<?, ?> getEnvironment() throws NamingException {
-        return env;
+        return getDefaultBackingContext().getEnvironment();
     }
 
 
@@ -651,7 +628,7 @@ public class WrapperContext implements Context {
      */
     @Override
     public String getNameInNamespace() throws NamingException {
-        return prefix;
+        return PREFIX;
     }
 
     /**
@@ -673,7 +650,7 @@ public class WrapperContext implements Context {
 //                return (name);
 //            } else {
 //                throw new NamingException
-//                        (sm.getString("selectorContext.noJavaUrl"));
+//                        (SM.getString("selectorContext.noJavaUrl"));
 //            }
 //        }
 
@@ -702,7 +679,7 @@ public class WrapperContext implements Context {
 //                return name;
 //            } else {
 //                throw new NamingException(
-//                        sm.getString("selectorContext.noJavaUrl"));
+//                        SM.getString("selectorContext.noJavaUrl"));
 //            }
 //        }
 
@@ -728,7 +705,7 @@ public class WrapperContext implements Context {
         }
 
         urlContext = JNDIUtils.getServiceReferences(bundleContext,
-                ObjectFactory.class, "(" + OSGi_JNDI_URL_SCHEME + "=" + scheme + ")")
+                ObjectFactory.class, "(" + OSGI_JNDI_URL_SCHEME + "=" + scheme + ")")
                 .stream()
                 .map(serviceRef -> getService(bundleContext, serviceRef))
                 .flatMap(objectFactoryOptional -> objectFactoryOptional.map(Stream::of).orElseGet(Stream::empty))
