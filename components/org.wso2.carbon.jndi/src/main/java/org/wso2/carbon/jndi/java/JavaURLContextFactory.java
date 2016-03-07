@@ -48,7 +48,7 @@ public class JavaURLContextFactory implements ObjectFactory {
     protected static volatile Context javaInitialContext = null;
 
     /**
-     * Create a new Context's instance.
+     * Create a new Context instance.
      */
     @SuppressWarnings("unchecked")
     @Override
