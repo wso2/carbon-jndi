@@ -16,7 +16,7 @@
 *  under the License.
 */
 
-package org.wso2.carbon.jndi.osgi;
+package org.wso2.carbon.jndi.internal.osgi;
 
 import java.util.Hashtable;
 

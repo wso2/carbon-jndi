@@ -14,7 +14,9 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <parent>
         <groupId>org.wso2.carbon.jndi</groupId>
         <artifactId>org.wso2.carbon.jndi.parent</artifactId>
@@ -24,7 +26,6 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.jndi</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
     <name>WSO2 Carbon JNDI - Implementation</name>
@@ -32,8 +33,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.wso2.eclipse.osgi</groupId>
-            <artifactId>org.eclipse.osgi</artifactId>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -41,50 +42,25 @@
             <artifactId>pax-logging-api</artifactId>
             <optional>true</optional>
         </dependency>
-        <dependency>
-            <groupId>javax.cache</groupId>
-            <artifactId>cache-api</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        <!--<dependency>-->
-            <!--<groupId>org.osgi</groupId>-->
-            <!--<artifactId>osgi.cmpn</artifactId>-->
-            <!--<version>6.0.0</version>-->
-        <!--</dependency>-->
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.3</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
 
     <properties>
         <bundle.activator>org.wso2.carbon.jndi.internal.JNDIActivator</bundle.activator>
         <private.package>org.wso2.carbon.jndi.internal.*</private.package>
         <export.package>
             !org.wso2.carbon.jndi.internal.*,
-            org.wso2.carbon.jndi.*;version=${carbon.jndi.pkg.export.version},
-            org.osgi.service.jndi;version=1.0.0;
+            org.osgi.service.jndi;version=${org.osgi.service.jndi.export.version};
         </export.package>
         <import.package>
-            !org.wso2.carbon.jndi.*;version=${carbon.jndi.version},
-            org.osgi.service.jndi;version="[1.0.0, 2.0.0)",
-            javax.naming.*;version="[0.0.0, 1.0.0)",
-            javax.sql;version="[0.0.0, 1.0.0)",
-            org.osgi.framework;version="${osgi.framework.package.import.version.range}",
-            org.slf4j.*;version="${slf4j.logging.package.import.version.range}"
+            !org.wso2.carbon.jndi.internal.*;version=${carbon.jndi.version},
+            org.osgi.service.jndi;version="${org.osgi.service.jndi.import.version.range}",
+            javax.naming.*;version="${javax.naming.import.version.range}",
+            org.osgi.framework;version="${osgi.framework.import.version.range}",
+            org.slf4j.*;version="${slf4j.logging.import.version.range}"
         </import.package>
-        <include.resource>{maven-resources},org/wso2/carbon/jndi/internal/LocalStrings.properties=src/main/java/org/wso2/carbon/jndi/internal/LocalStrings.properties</include.resource>
+        <include.resource>
+            {maven-resources},org/wso2/carbon/jndi/internal/LocalStrings.properties=src/main/java/org/wso2/carbon/jndi/internal/LocalStrings.properties
+        </include.resource>
     </properties>
 
 </project>

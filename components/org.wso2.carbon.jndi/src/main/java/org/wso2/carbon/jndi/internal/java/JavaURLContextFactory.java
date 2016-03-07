@@ -16,7 +16,7 @@
 *  under the License.
 */
 
-package org.wso2.carbon.jndi.java;
+package org.wso2.carbon.jndi.internal.java;
 
 import org.wso2.carbon.jndi.internal.impl.NamingContext;
 
