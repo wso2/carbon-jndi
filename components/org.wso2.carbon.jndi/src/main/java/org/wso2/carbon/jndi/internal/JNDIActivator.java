@@ -24,8 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.jndi.internal.java.JavaURLContextFactory;
 import org.wso2.carbon.jndi.internal.osgi.JNDIContextManagerServiceFactory;
-import org.wso2.carbon.jndi.internal.osgi.builders.DefaultContextFactoryBuilder;
-import org.wso2.carbon.jndi.internal.osgi.builders.DefaultObjectFactoryBuilder;
+import org.wso2.carbon.jndi.internal.osgi.builder.DefaultContextFactoryBuilder;
+import org.wso2.carbon.jndi.internal.osgi.builder.DefaultObjectFactoryBuilder;
 
 import java.util.Dictionary;
 import java.util.Hashtable;

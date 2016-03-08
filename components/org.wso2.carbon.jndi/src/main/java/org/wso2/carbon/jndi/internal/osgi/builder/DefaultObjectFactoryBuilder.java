@@ -15,25 +15,23 @@
 *  specific language governing permissions and limitations
 *  under the License.
 */
-package org.wso2.carbon.jndi.internal.osgi.builders;
-
-import org.wso2.carbon.jndi.internal.osgi.factories.DefaultContextFactory;
+package org.wso2.carbon.jndi.internal.osgi.builder;
 
 import java.util.Hashtable;
 
 import javax.naming.NamingException;
-import javax.naming.spi.InitialContextFactory;
-import javax.naming.spi.InitialContextFactoryBuilder;
+import javax.naming.spi.ObjectFactory;
+import javax.naming.spi.ObjectFactoryBuilder;
 
 /**
- * An implementation of {@code InitialContextFactoryBuilder} interface which act as the default initial context
- * factory builder which is set in the NamingManager. This is required for tradition java clients which uses the
- * InitialContext API. (Not JNDIContextManager API)
+ * An implementation of {@code ObjectFactoryBuilder} interface which act as the default object factory builder
+ * which is set in the NamingManager. This is required for tradition java clients which uses the InitialContext API.
+ * (Not JNDIContextManager API)
  */
-public class DefaultContextFactoryBuilder implements InitialContextFactoryBuilder {
+public class DefaultObjectFactoryBuilder implements ObjectFactoryBuilder {
 
     @Override
-    public InitialContextFactory createInitialContextFactory(Hashtable<?, ?> environment) throws NamingException {
-        return new DefaultContextFactory();
+    public ObjectFactory createObjectFactory(Object obj, Hashtable<?, ?> environment) throws NamingException {
+        return null;
     }
 }

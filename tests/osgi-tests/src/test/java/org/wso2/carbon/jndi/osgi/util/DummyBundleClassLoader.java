@@ -15,7 +15,7 @@
 *  specific language governing permissions and limitations
 *  under the License.
 */
-package org.wso2.carbon.jndi.osgi.utils;
+package org.wso2.carbon.jndi.osgi.util;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleReference;

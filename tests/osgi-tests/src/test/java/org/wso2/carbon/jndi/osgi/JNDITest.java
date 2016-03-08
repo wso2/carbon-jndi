@@ -1,4 +1,3 @@
-
 /*
  *  Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
@@ -14,8 +13,11 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package org.wso2.carbon.jndi.osgi;
 
+import org.ops4j.pax.exam.Configuration;
+import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerClass;
 import org.ops4j.pax.exam.testng.listener.PaxExam;
@@ -33,14 +35,20 @@ import org.wso2.carbon.jndi.osgi.factories.BundleContextICFServiceFactory;
 import org.wso2.carbon.jndi.osgi.factories.ExceptionInitialContextFactory;
 import org.wso2.carbon.jndi.osgi.factories.FooInitialContextFactory;
 import org.wso2.carbon.jndi.osgi.factories.NullInitialContextFactory;
-import org.wso2.carbon.jndi.osgi.utils.DummyBundleClassLoader;
+import org.wso2.carbon.jndi.osgi.util.DummyBundleClassLoader;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
+import org.wso2.carbon.osgi.test.util.CarbonSysPropConfiguration;
+import org.wso2.carbon.osgi.test.util.OSGiTestConfigurationUtils;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Dictionary;
 
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -51,6 +59,7 @@ import javax.naming.NamingException;
 import javax.naming.spi.InitialContextFactory;
 import javax.naming.spi.InitialContextFactoryBuilder;
 
+import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.testng.Assert.assertEquals;
 
 @Listeners(PaxExam.class)
@@ -65,7 +74,25 @@ public class JNDITest {
     @Inject
     private JNDIContextManager jndiContextManager;
 
-    //TODO Clean up these tests
+    @Configuration
+    public Option[] createConfiguration() {
+        List<Option> optionList = new ArrayList<>();
+        optionList.add(mavenBundle().artifactId("org.wso2.carbon.jndi")
+                .groupId("org.wso2.carbon.jndi").versionAsInProject());
+
+        String currentDir = Paths.get("").toAbsolutePath().toString();
+        Path carbonHome = Paths.get(currentDir, "target", "carbon-home");
+
+        CarbonSysPropConfiguration sysPropConfiguration = new CarbonSysPropConfiguration();
+        sysPropConfiguration.setCarbonHome(carbonHome.toString());
+        sysPropConfiguration.setServerKey("carbon-jndi");
+        sysPropConfiguration.setServerName("WSO2 Carbon JNDI Server");
+        sysPropConfiguration.setServerVersion("1.0.0");
+
+        optionList = OSGiTestConfigurationUtils.getConfiguration(optionList, sysPropConfiguration);
+
+        return optionList.toArray(new Option[optionList.size()]);
+    }
 
     @Test
     public void testJNDITraditionalClient() throws NamingException {

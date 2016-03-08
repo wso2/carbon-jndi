@@ -39,8 +39,8 @@ import javax.naming.spi.ObjectFactory;
 
 import static org.wso2.carbon.jndi.internal.Constants.OSGI_JNDI_URL_SCHEME;
 import static org.wso2.carbon.jndi.internal.util.JNDIUtils.getService;
-import static org.wso2.carbon.jndi.internal.util.LambdaExceptionUtil.rethrowFunction;
-import static org.wso2.carbon.jndi.internal.util.LambdaExceptionUtil.rethrowSupplier;
+import static org.wso2.carbon.jndi.internal.util.LambdaExceptionUtils.rethrowFunction;
+import static org.wso2.carbon.jndi.internal.util.LambdaExceptionUtils.rethrowSupplier;
 
 
 /**
