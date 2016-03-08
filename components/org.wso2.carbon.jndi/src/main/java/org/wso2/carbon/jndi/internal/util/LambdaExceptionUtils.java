@@ -25,7 +25,7 @@ import java.util.function.Supplier;
 /**
  * A Utility which provides a way to throw checked exceptions from the lambda expressions.
  */
-public final class LambdaExceptionUtil {
+public final class LambdaExceptionUtils {
 
     /**
      * Represents a {@code Consumer} interface which can throw exceptions.

@@ -15,9 +15,9 @@
 *  specific language governing permissions and limitations
 *  under the License.
 */
-package org.wso2.carbon.jndi.internal.osgi.builders;
+package org.wso2.carbon.jndi.internal.osgi.builder;
 
-import org.wso2.carbon.jndi.internal.osgi.factories.DefaultContextFactory;
+import org.wso2.carbon.jndi.internal.osgi.factory.DefaultContextFactory;
 
 import java.util.Hashtable;
 

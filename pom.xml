@@ -31,6 +31,15 @@
     <packaging>pom</packaging>
     <version>1.0.0-SNAPSHOT</version>
     <name>WSO2 Carbon JNDI - Parent</name>
+
+    <modules>
+        <module>components/org.wso2.carbon.jndi</module>
+        <module>tests</module>
+        <module>features/org.wso2.carbon.jndi.feature</module>
+        <module>samples/traditional-client-model</module>
+        <module>samples/osgi-jndi-service</module>
+    </modules>
+
     <build>
         <extensions>
             <extension>
@@ -38,29 +47,24 @@
                 <artifactId>wagon-ssh</artifactId>
             </extension>
         </extensions>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.wso2.carbon.maven</groupId>
+                    <artifactId>carbon-feature-plugin</artifactId>
+                    <version>${carbon.feature.plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
     </build>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.wso2.eclipse.osgi</groupId>
-                <artifactId>org.eclipse.osgi</artifactId>
-                <version>${equinox.osgi.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.eclipse.osgi</groupId>
-                <artifactId>org.eclipse.osgi.services</artifactId>
-                <version>${equinox.osgi.services.version}</version>
+                <groupId>org.osgi</groupId>
+                <artifactId>org.osgi.core</artifactId>
+                <version>${osgi.core.api.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.eclipse.equinox</groupId>
@@ -73,18 +77,6 @@
                 <artifactId>org.wso2.carbon.jndi</artifactId>
                 <version>${carbon.jndi.version}</version>
             </dependency>
-            <!--<dependency>-->
-            <!--<groupId>org.wso2.carbon</groupId>-->
-            <!--<artifactId>org.wso2.carbon.core.server.feature</artifactId>-->
-            <!--<version>${carbon.kernel.version}</version>-->
-            <!--<type>zip</type>-->
-            <!--</dependency>-->
-            <!--<dependency>-->
-            <!--<groupId>org.wso2.carbon</groupId>-->
-            <!--<artifactId>org.wso2.carbon.core.runtime.feature</artifactId>-->
-            <!--<version>${carbon.kernel.version}</version>-->
-            <!--<type>zip</type>-->
-            <!--</dependency>-->
             <dependency>
                 <groupId>org.wso2.carbon.jndi</groupId>
                 <artifactId>org.wso2.carbon.jndi.feature</artifactId>
@@ -108,11 +100,6 @@
                 <groupId>org.ops4j.pax.logging</groupId>
                 <artifactId>pax-logging-log4j2</artifactId>
                 <version>${pax.logging.log4j2.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.eclipse.equinox</groupId>
-                <artifactId>org.eclipse.equinox.simpleconfigurator</artifactId>
-                <version>${equinox.simpleconfigurator.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.exam</groupId>
@@ -161,124 +148,33 @@
                 <version>${javax.inject.version}</version>
                 <scope>test</scope>
             </dependency>
-
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${slf4j.api.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>org.apache.felix.gogo.command</artifactId>
-                <version>${apache.felix.gogo.command.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>org.apache.felix.gogo.runtime</artifactId>
-                <version>${apache.felix.gogo.runtime.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>org.apache.felix.gogo.shell</artifactId>
-                <version>${apache.felix.gogo.shell.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.eclipse.equinox</groupId>
-                <artifactId>org.eclipse.equinox.app</artifactId>
-                <version>${equinox.app.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.eclipse.equinox</groupId>
-                <artifactId>org.eclipse.equinox.concurrent</artifactId>
-                <version>${equinox.concurrent.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.eclipse.equinox</groupId>
-                <artifactId>org.eclipse.equinox.console</artifactId>
-                <version>${equinox.console.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.eclipse.equinox</groupId>
-                <artifactId>org.eclipse.equinox.common</artifactId>
-                <version>${equinox.common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.eclipse.equinox</groupId>
-                <artifactId>org.eclipse.equinox.frameworkadmin</artifactId>
-                <version>${equinox.frameworkadmin.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.eclipse.equinox</groupId>
-                <artifactId>org.eclipse.equinox.frameworkadmin.equinox</artifactId>
-                <version>${equinox.frameworkadmin.equinox.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.eclipse.equinox</groupId>
-                <artifactId>org.eclipse.equinox.launcher</artifactId>
-                <version>${equinox.launcher.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.eclipse.equinox</groupId>
-                <artifactId>org.eclipse.equinox.preferences</artifactId>
-                <version>${equinox.preferences.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.eclipse.equinox</groupId>
-                <artifactId>org.eclipse.equinox.registry</artifactId>
-                <version>${equinox.registry.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.eclipse.equinox</groupId>
-                <artifactId>org.eclipse.equinox.simpleconfigurator.manipulator</artifactId>
-                <version>${equinox.simpleconfigurator.manipulator.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.eclipse.equinox</groupId>
-                <artifactId>org.eclipse.equinox.util</artifactId>
-                <version>${equinox.util.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.eclipse.equinox</groupId>
-                <artifactId>org.eclipse.equinox.cm</artifactId>
-                <version>${org.eclipse.equinox.cm.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.orbit.org.yaml</groupId>
-                <artifactId>snakeyaml</artifactId>
-                <version>${org.snakeyaml.version}</version>
-            </dependency>
             <dependency>
                 <groupId>org.wso2.carbon</groupId>
-                <artifactId>org.wso2.carbon.core</artifactId>
+                <artifactId>carbon-kernel-osgi-test-util</artifactId>
                 <version>${carbon.kernel.version}</version>
                 <scope>test</scope>
             </dependency>
-
         </dependencies>
     </dependencyManagement>
 
-    <modules>
-        <module>components/org.wso2.carbon.jndi</module>
-        <module>tests</module>
-        <module>features/org.wso2.carbon.jndi.feature</module>
-    </modules>
-
     <properties>
-        <slf4j.api.version>1.7.12</slf4j.api.version>
         <carbon.jndi.version>1.0.0-SNAPSHOT</carbon.jndi.version>
         <carbon.jndi.pkg.export.version>1.0.0</carbon.jndi.pkg.export.version>
+
+        <carbon.kernel.version>5.1.0-SNAPSHOT</carbon.kernel.version>
         <carbon.feature.plugin.version>2.0.0</carbon.feature.plugin.version>
-        <carbon.kernel.version>5.0.0</carbon.kernel.version>
-        <osgi.api.version>6.0.0</osgi.api.version>
 
-        <!-- Equinox dependency versions -->
-        <equinox.osgi.version>3.10.2.v20150203-1939</equinox.osgi.version>
-        <equinox.osgi.services.version>3.4.0.v20140312-2051</equinox.osgi.services.version>
+        <!-- OSGi API dependency versions -->
+        <osgi.core.api.version>6.0.0</osgi.core.api.version>
 
-        <pax.logging.api.version>1.8.4</pax.logging.api.version>
-        <osgi.framework.package.import.version.range>[1.8.0, 2.0.0)</osgi.framework.package.import.version.range>
-        <slf4j.logging.package.import.version.range>[1.7.1, 2.0.0)</slf4j.logging.package.import.version.range>
+        <!-- Export versions -->
+        <org.osgi.service.jndi.export.version>1.0.0</org.osgi.service.jndi.export.version>
+
+        <!-- Import version ranges -->
+        <org.osgi.service.jndi.import.version.range>[1.0.0, 2.0.0)</org.osgi.service.jndi.import.version.range>
+        <javax.naming.import.version.range>[0.0.0, 1.0.0)</javax.naming.import.version.range>
+        <osgi.framework.import.version.range>[1.8.0, 2.0.0)</osgi.framework.import.version.range>
+        <slf4j.logging.import.version.range>[1.7.1, 2.0.0)</slf4j.logging.import.version.range>
 
         <!-- OSGi Tests -->
         <testng.version>6.9.4</testng.version>
@@ -314,8 +210,6 @@
         <ow2.jta.spec.version>1.0.12</ow2.jta.spec.version>
         <javax.inject.version>1</javax.inject.version>
         <jacoco.version>0.7.5.201505241946</jacoco.version>
-        <slf4j.api.version>1.7.12</slf4j.api.version>
-
 
     </properties>
 

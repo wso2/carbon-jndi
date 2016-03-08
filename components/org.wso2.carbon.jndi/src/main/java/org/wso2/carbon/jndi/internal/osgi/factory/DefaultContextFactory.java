@@ -15,7 +15,7 @@
 *  specific language governing permissions and limitations
 *  under the License.
 */
-package org.wso2.carbon.jndi.internal.osgi.factories;
+package org.wso2.carbon.jndi.internal.osgi.factory;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleReference;
@@ -33,7 +33,7 @@ import javax.naming.spi.InitialContextFactory;
 import javax.naming.spi.NamingManager;
 
 import static org.wso2.carbon.jndi.internal.Constants.OSGI_SERVICE_JNDI_BC;
-import static org.wso2.carbon.jndi.internal.util.LambdaExceptionUtil.rethrowFunction;
+import static org.wso2.carbon.jndi.internal.util.LambdaExceptionUtils.rethrowFunction;
 
 /**
  * This class represents the default context factory which is used by the {@code DefaultContextFactoryBuilder}

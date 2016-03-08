@@ -15,25 +15,23 @@
 *  specific language governing permissions and limitations
 *  under the License.
 */
-
-package org.wso2.carbon.jndi.osgi;
+package org.wso2.carbon.jndi.internal.osgi.builder;
 
 import java.util.Hashtable;
 
-import javax.naming.Context;
-import javax.naming.Name;
+import javax.naming.NamingException;
 import javax.naming.spi.ObjectFactory;
+import javax.naming.spi.ObjectFactoryBuilder;
 
 /**
- * URLContextFactory for osgi: namespace.
+ * An implementation of {@code ObjectFactoryBuilder} interface which act as the default object factory builder
+ * which is set in the NamingManager. This is required for tradition java clients which uses the InitialContext API.
+ * (Not JNDIContextManager API)
  */
-public class OSGiURLContextFactory implements ObjectFactory {
+public class DefaultObjectFactoryBuilder implements ObjectFactoryBuilder {
 
     @Override
-    public Object getObjectInstance(Object obj,
-                                    Name name,
-                                    Context nameCtx,
-                                    Hashtable<?, ?> environment) throws Exception {
+    public ObjectFactory createObjectFactory(Object obj, Hashtable<?, ?> environment) throws NamingException {
         return null;
     }
 }

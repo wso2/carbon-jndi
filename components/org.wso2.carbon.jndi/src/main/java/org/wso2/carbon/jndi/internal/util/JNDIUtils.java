@@ -34,7 +34,7 @@ import javax.naming.NamingException;
 import javax.naming.spi.InitialContextFactory;
 import javax.naming.spi.InitialContextFactoryBuilder;
 
-import static org.wso2.carbon.jndi.internal.util.LambdaExceptionUtil.rethrowFunction;
+import static org.wso2.carbon.jndi.internal.util.LambdaExceptionUtils.rethrowFunction;
 
 /**
  * This class contains utility methods used in this carbon-jndi implementation.
