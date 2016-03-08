@@ -7,9 +7,7 @@ an implementation of the OSGi JNDI Service specification.
 
 A client bundle which needs to use JNDI in OSGi should use the JNDI Context Manager service. Creating an InitialContext using new InitialContext() method is not recommended in OSGi environments due to class loading complexities.
 
-### How to create an InitialContext from the JNDIContextManager service.
-
-JNDIContextManager service is available as an OSGi service
+### Creating an InitialContext from the JNDIContextManager service
 
 ```java
 ServiceReference<JNDIContextManager> contextManagerSRef = bundleContext.getServiceReference(
@@ -22,4 +20,16 @@ JNDIContextManager jndiContextManager = Optional.ofNullable(contextManagerSRef)
 Context initialContext = jndiContextManager.newInitialContext();
 
 DataSource dataSource = (DataSource) initialContext.lookup("java:comp/env/jdbc/wso2carbonDB");
+```
+
+### Creating an InitialContext from the traditional client API
+
+This way of creating the InitialContext is also supported by the OSGi JNDI Service specification.
+  
+```java
+InitialContext initialContext = new InitialContext();  
+
+Context envContext = initialContext.createSubcontext("java:comp/env");
+
+DataSource dataSource = (DataSource) envContext.lookup("jdbc/wso2carbonDB");
 ```
