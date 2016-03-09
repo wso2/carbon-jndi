@@ -23,6 +23,7 @@ import org.ops4j.pax.exam.spi.reactors.PerClass;
 import org.ops4j.pax.exam.testng.listener.PaxExam;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.testng.annotations.Listeners;
@@ -61,6 +62,7 @@ import javax.naming.spi.InitialContextFactoryBuilder;
 
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 @Listeners(PaxExam.class)
 @ExamReactorStrategy(PerClass.class)
@@ -401,5 +403,20 @@ public class JNDITest {
         abcICFBServiceRef.unregister();
         nullICFBServiceRef.unregister();
         xyzICFBServiceRef.unregister();
+    }
+
+    /**
+     * In this test we are trying do a osgi:service lookup.
+     * The lookup query need to follow the scheme osgi:service/<interface>[/<filter>].
+     */
+    @Test(dependsOnMethods = "testJNDIContextManagerWithEnvironmentContextFactoryBuilder")
+    public void testOSGIUrlWithJNDI() throws NamingException {
+
+        Context context = jndiContextManager.newInitialContext();
+
+        org.osgi.framework.ServiceReference osgiServiceReference =
+                (ServiceReference) context.lookup("osgi:service/javax.naming.spi.ObjectFactory");
+
+        assertNotNull(osgiServiceReference, "Specified interface does not registered with bundle context");
     }
 }

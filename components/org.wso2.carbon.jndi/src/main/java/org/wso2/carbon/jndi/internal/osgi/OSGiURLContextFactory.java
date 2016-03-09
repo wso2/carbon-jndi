@@ -18,22 +18,28 @@
 
 package org.wso2.carbon.jndi.internal.osgi;
 
-import java.util.Hashtable;
+import org.osgi.framework.BundleContext;
 
 import javax.naming.Context;
 import javax.naming.Name;
 import javax.naming.spi.ObjectFactory;
+import java.util.Hashtable;
 
 /**
  * URLContextFactory for osgi: namespace.
  */
 public class OSGiURLContextFactory implements ObjectFactory {
+    private BundleContext callerContext;
+
+    public OSGiURLContextFactory(BundleContext callerContext) {
+        this.callerContext = callerContext;
+    }
 
     @Override
     public Object getObjectInstance(Object obj,
                                     Name name,
                                     Context nameCtx,
                                     Hashtable<?, ?> environment) throws Exception {
-        return null;
+        return new OSGIServiceRegistryContext(callerContext, environment);
     }
 }

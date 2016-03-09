@@ -19,27 +19,28 @@ package org.wso2.carbon.jndi.internal;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.service.jndi.JNDIConstants;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.jndi.internal.java.JavaURLContextFactory;
 import org.wso2.carbon.jndi.internal.osgi.JNDIContextManagerServiceFactory;
+import org.wso2.carbon.jndi.internal.osgi.OSGiURLContextFactory;
 import org.wso2.carbon.jndi.internal.osgi.builder.DefaultContextFactoryBuilder;
 import org.wso2.carbon.jndi.internal.osgi.builder.DefaultObjectFactoryBuilder;
-
-import java.util.Dictionary;
-import java.util.Hashtable;
 
 import javax.naming.spi.InitialContextFactory;
 import javax.naming.spi.NamingManager;
 import javax.naming.spi.ObjectFactory;
+import java.util.Dictionary;
+import java.util.Hashtable;
 
 
 /**
  * An implementation of {@code BundleActivator} which initializes Carbon JNDI implementations.
- * <p>
+ * <p/>
  * Sets the default InitialContextFactoryBuilder and ObjectFactoryBuilder.
- * <p>
+ * <p/>
  * Registers default InitialContextFactory implementations as OSGi services.
  */
 public class JNDIActivator implements BundleActivator {
@@ -54,8 +55,14 @@ public class JNDIActivator implements BundleActivator {
             NamingManager.setObjectFactoryBuilder(new DefaultObjectFactoryBuilder());
 
             Dictionary<String, String> propertyMap = new Hashtable<>();
-            propertyMap.put("osgi.jndi.url.scheme", "java");
+            propertyMap.put(JNDIConstants.JNDI_URLSCHEME, "java");
             bundleContext.registerService(ObjectFactory.class, new JavaURLContextFactory(), propertyMap);
+
+            //register osgi url scheme
+            Dictionary<String, String> osgiPropertyMap = new Hashtable<>();
+            osgiPropertyMap.put(JNDIConstants.JNDI_URLSCHEME, "osgi");
+            bundleContext.registerService(ObjectFactory.class.getName(),
+                    new OSGiURLContextFactory(bundleContext), osgiPropertyMap);
 
             // InitialContextFactory Provider should be registered with its implementation class as well as the
             // InitialContextFactory class.
