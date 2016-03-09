@@ -1,6 +1,14 @@
 ## Carbon JNDI
 
-Carbon JNDI project provides an In-memory JNDI service provider implementation as well as an implementation of the [OSGi](https://www.osgi.org/) JNDI Service specification.
+Carbon JNDI project provides an In-memory JNDI service provider implementation as well as an implementation of the [OSGi](https://www.osgi.org/) JNDI Service specification. 
+
+The Java Naming and Directory Interface (JNDI) is a registry technology in Java applications, both in the Java SE and Java EE space. JNDI provides a vendor-neutral set of APIs that allow clients to interact with a naming service from different vendors.
+
+Usually JNDI usages in Java SE heavily depends on the single flat classpath model provided by JDK. e.g. JNDI providers are loaded using the Thread context class loader. This approach does not work or not suitable for OSGi environments because this creates a dependency between JNDI client and the JNDI provider implementation. This breaks modularity defined in OSGi. Therefore OSGi JNDI service specification define following models to resolve this issue.
+  
+* OSGi Service Model    - How clients interact with JNDI when running inside an OSGi Framework.
+* JNDI Provider Model   - How JNDI providers can advertise their existence so they are available to OSGi and traditional clients.
+* Traditional Model     - How traditional JNDI applications and providers can continue to work in an OSGi Framework without needing to be rewritten when certain precautions are taken.
 
 ## Features:
 
@@ -53,6 +61,9 @@ Use Maven snippet:
 ````
 
 ### Snapshot Releases
+
+Use following Maven repository for snapshot versions of Carbon JNDI.
+
 ````xml
 <repository>
     <id>wso2.snapshots</id>
@@ -69,6 +80,9 @@ Use Maven snippet:
 ````
 
 ### Released Versions
+
+Use following Maven repository for released stable versions of Carbon JNDI.
+
 ````xml
 <repository>
     <id>wso2.releases</id>
@@ -81,3 +95,19 @@ Use Maven snippet:
     </releases>
 </repository>
 ````
+
+## Building From Source
+
+Clone this repository first (`git clone https://github.com/wso2/carbon-jndi.git`) and use Maven install to build `mvn clean install`.
+
+## Contributing to Carbon JNDI Project
+
+Pull requests are highly encouraged and we recommend you to create a GitHub issue to discuss the issue or feature that you are contributing to.  
+
+## License
+
+Carbon JNDI is available under the Apache 2 License.
+
+## Copyright
+
+Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
