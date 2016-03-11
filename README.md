@@ -59,9 +59,11 @@ Following is a sample CustomInitialContext class
 public class CustomInitialContext implements Context {
 
     private Hashtable<String, Object> environment;
+    private HashMap<String, Object> contextObjects;
 
     public CustomInitialContext(Hashtable<String, Object> environment) throws NamingException {
         this.environment = environment;
+        this.contextObjects = new HashMap();
     }
 
     @Override
@@ -71,14 +73,11 @@ public class CustomInitialContext implements Context {
 
     @Override
     public Object lookup(String name) throws NamingException {
-        if ("contextFactoryClass".equals(name)) {
-            return contextFactoryClassName;
-        }
-
-        if ("contextFactoryBuilderClass".equals(name)) {
-            return contextFactoryBuilderClassName;
-        }
-        return null;
+        Object obj = contextObjects.get(name);
+                if (obj == null) {
+                    throw new NameNotFoundException("No binding found for the name: " + name);
+                }
+        return obj;
     }
 
     @Override
@@ -100,7 +99,7 @@ public class CustomInitialContextFactory implements InitialContextFactory {
 }
 ```
 
-Here we are adding a new InitialContextFactory to the environment and creating an InitialContextFactory from JNDIContextManager
+Here we are adding a new InitialContextFactory to the environment and creating an InitialContextFactory from JNDIContextManager.
 This way the returned context is an instance of the CustomInitialContext. The lookup() calls will be operated on this
 custom context.
 ```java
