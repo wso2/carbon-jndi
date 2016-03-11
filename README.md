@@ -51,23 +51,8 @@ For full source code, see [Carbon JNDI samples] (samples).
 
 
 ### 3) Using an custom InitialContext from JNDIContextManager service
-This way the returned context is an instance of the CustomInitialContext.
-```java
-ServiceRegistration serviceRegistration = bundleContext.registerService(InitialContextFactory.class.getName(),
-        new CustomInitialContextFactory(), null);
-Context initialContext = jndiContextManager.newInitialContext();
-DataSource dataSource = (DataSource) initialContext.lookup("java:comp/env/jdbc/wso2carbonDB");
-```
 
-Following is a sample InitialContextFactory class used in the sample. This returns a new CustomInitialContext.
-```java
-public class CustomInitialContextFactory implements InitialContextFactory {
-    @Override
-    public Context getInitialContext(Hashtable<?, ?> environment) throws NamingException {
-        return new CustomInitialContext(environment);
-    }
-}
-```
+Client can specify a custom InitialContextFactory to be used in the environment.
 Following is a sample CustomInitialContext class
 
 ```java
@@ -101,8 +86,27 @@ public class CustomInitialContext implements Context {
         return environment;
     }
 
-    //implement methods
+    //implement all abstract methods of Context class
 }
+
+Following is a sample InitialContextFactory class. This returns a new CustomInitialContext created above.
+```java
+public class CustomInitialContextFactory implements InitialContextFactory {
+    @Override
+    public Context getInitialContext(Hashtable<?, ?> environment) throws NamingException {
+        return new CustomInitialContext(environment);
+    }
+}
+```
+
+This way the returned context is an instance of the CustomInitialContext. The lookup() calls will be operated on this
+custom context.
+```java
+ServiceRegistration serviceRegistration = bundleContext.registerService(InitialContextFactory.class.getName(),
+        new CustomInitialContextFactory(), null);
+Context initialContext = jndiContextManager.newInitialContext();
+DataSource dataSource = (DataSource) initialContext.lookup("java:comp/env/jdbc/wso2carbonDB");
+```
 
 ```
 ## Download 
