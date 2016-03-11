@@ -100,12 +100,17 @@ public class CustomInitialContextFactory implements InitialContextFactory {
 }
 ```
 
+Here we are adding a new InitialContextFactory to the environment and creating an InitialContextFactory from JNDIContextManager
 This way the returned context is an instance of the CustomInitialContext. The lookup() calls will be operated on this
 custom context.
 ```java
 ServiceRegistration serviceRegistration = bundleContext.registerService(InitialContextFactory.class.getName(),
         new CustomInitialContextFactory(), null);
-Context initialContext = jndiContextManager.newInitialContext();
+Map<String, String> environment = new HashMap<String, String>(1);
+environment.put(javax.naming.Context.INITIAL_CONTEXT_FACTORY,
+                CustomInitialContextFactory.class.getName());
+Context initialContext = jndiContextManager.newInitialContext(environment);
+initialContext.bind("java:comp/env/jdbc/wso2carbonDB", "custom.datasource");
 DataSource dataSource = (DataSource) initialContext.lookup("java:comp/env/jdbc/wso2carbonDB");
 ```
 
