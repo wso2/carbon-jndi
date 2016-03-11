@@ -17,13 +17,13 @@ import java.util.Map;
 /**
  * JNDI context implementation for handling osgi:servicelist lookup.
  */
-public class OSGIServiceRegistryListContext implements Context {
+public class OSGIUrlListContext implements Context {
 
     protected Map<String, Object> env;
     NameParser parser = new NameParserImpl();
     private BundleContext callerContext;
 
-    public OSGIServiceRegistryListContext(BundleContext callerContext, Map<String, Object> env, Name validName) {
+    public OSGIUrlListContext(BundleContext callerContext, Map<String, Object> env, Name validName) {
         //todo
     }
 

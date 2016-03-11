@@ -417,6 +417,7 @@ public class JNDITest {
         org.osgi.framework.ServiceReference osgiServiceReference =
                 (ServiceReference) context.lookup("osgi:service/javax.naming.spi.ObjectFactory");
 
+
         assertNotNull(osgiServiceReference, "Specified interface does not registered with bundle context");
     }
 }

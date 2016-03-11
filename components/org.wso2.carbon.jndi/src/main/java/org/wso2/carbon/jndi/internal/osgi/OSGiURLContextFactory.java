@@ -40,6 +40,6 @@ public class OSGiURLContextFactory implements ObjectFactory {
                                     Name name,
                                     Context nameCtx,
                                     Hashtable<?, ?> environment) throws Exception {
-        return new OSGIServiceRegistryContext(callerContext, environment);
+        return new OSGIUrlContext(callerContext, environment);
     }
 }
