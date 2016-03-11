@@ -110,7 +110,7 @@ Map<String, String> environment = new HashMap<String, String>(1);
 environment.put(javax.naming.Context.INITIAL_CONTEXT_FACTORY,
                 CustomInitialContextFactory.class.getName());
 Context initialContext = jndiContextManager.newInitialContext(environment);
-initialContext.bind("java:comp/env/jdbc/wso2carbonDB", "custom.datasource");
+initialContext.bind("java:comp/env/jdbc/wso2carbonDB", new Datasource("wso2carbonDB"));
 DataSource dataSource = (DataSource) initialContext.lookup("java:comp/env/jdbc/wso2carbonDB");
 ```
 
