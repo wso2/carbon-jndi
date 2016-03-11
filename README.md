@@ -47,8 +47,9 @@ Context envContext = initialContext.createSubcontext("java:comp/env");
 DataSource dataSource = (DataSource) envContext.lookup("jdbc/wso2carbonDB");
 ```
 
-
 ### 3) Creating InitialContext with declarative services
+
+Following service component retrieves the JNDIContextManager and create InitialContext.
 
 ```java
 public class ActivatorComponent {
