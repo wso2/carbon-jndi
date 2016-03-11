@@ -88,6 +88,7 @@ public class CustomInitialContext implements Context {
 
     //implement all abstract methods of Context class
 }
+```
 
 Following is a sample InitialContextFactory class. This returns a new CustomInitialContext created above.
 ```java
@@ -108,7 +109,6 @@ Context initialContext = jndiContextManager.newInitialContext();
 DataSource dataSource = (DataSource) initialContext.lookup("java:comp/env/jdbc/wso2carbonDB");
 ```
 
-```
 ## Download 
 
 Use Maven snippet:
