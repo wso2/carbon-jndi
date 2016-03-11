@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.jndi.internal.java.JavaURLContextFactory;
 import org.wso2.carbon.jndi.internal.osgi.JNDIContextManagerServiceFactory;
-import org.wso2.carbon.jndi.internal.osgi.OSGIUrlContextServiceFactory;
+import org.wso2.carbon.jndi.internal.osgi.OSGiUrlContextServiceFactory;
 import org.wso2.carbon.jndi.internal.osgi.builder.DefaultContextFactoryBuilder;
 import org.wso2.carbon.jndi.internal.osgi.builder.DefaultObjectFactoryBuilder;
 
@@ -61,7 +61,7 @@ public class JNDIActivator implements BundleActivator {
             //register osgi url scheme
             Dictionary<String, String> osgiPropertyMap = new Hashtable<>();
             osgiPropertyMap.put(JNDIConstants.JNDI_URLSCHEME, "osgi");
-            bundleContext.registerService(ObjectFactory.class.getName(), new OSGIUrlContextServiceFactory(), null);
+            bundleContext.registerService(ObjectFactory.class.getName(), new OSGiUrlContextServiceFactory(), null);
 
             // InitialContextFactory Provider should be registered with its implementation class as well as the
             // InitialContextFactory class.

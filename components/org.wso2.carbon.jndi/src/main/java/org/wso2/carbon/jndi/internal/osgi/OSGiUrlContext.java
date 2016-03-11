@@ -38,8 +38,9 @@ import java.util.Map;
 
 /**
  * JNDI context implementation for handling osgi:service lookup.
+ * Sample query osgi:service/<interface>/<filter>
  */
-public class OSGIUrlContext implements Context {
+public class OSGiUrlContext implements Context {
     /**
      * The environment for this context
      */
@@ -51,7 +52,7 @@ public class OSGIUrlContext implements Context {
     public static final String SERVICE_LIST_PATH = "servicelist";
     NameParser parser = new NameParserImpl();
 
-    public OSGIUrlContext(BundleContext callerContext, Hashtable<?, ?> environment) {
+    public OSGiUrlContext(BundleContext callerContext, Hashtable<?, ?> environment) {
         this.callerContext = callerContext;
         env = new HashMap<>();
         env.putAll((Map<? extends String, ?>) environment);
@@ -60,22 +61,21 @@ public class OSGIUrlContext implements Context {
     @Override
     public Object lookup(Name name) throws NamingException {
 
-        //osgi:service/<interface>/<filter>
         OSGiName osGiName = (OSGiName) name;
         String scheme = name.get(0);
         String interfaceName = null;
         String filter = null;
 
-        if(osGiName.hasInterface()){
+        if (osGiName.hasInterface()) {
             interfaceName = osGiName.get(1);
         }
-        if (osGiName.hasFilter()){
+        if (osGiName.hasFilter()) {
             filter = osGiName.get(2);
         }
 
         //The owning bundle is the bundle that requested the initial Context from the JNDI Context Manager
         //service or received its Context through the InitialContext class
-        if (!interfaceName.isEmpty()) {
+        if (osGiName.hasInterface()) {
             return callerContext.getServiceReference(interfaceName);
         } else if (getSchemePath(scheme).equals(SERVICE_PATH)) {
             //returns the service with highest
@@ -83,7 +83,7 @@ public class OSGIUrlContext implements Context {
             return findService(callerContext, interfaceName, filter);
         } else if (getSchemePath(scheme).equals(SERVICE_LIST_PATH)) {
             //a Context object is returned instead of a service objects
-            return new OSGIUrlListContext(callerContext, env, name);
+            return new OSGiUrlListContext(callerContext, env, name);
         }
 
 
@@ -185,7 +185,7 @@ public class OSGIUrlContext implements Context {
 
     @Override
     public NamingEnumeration<NameClassPair> list(Name name) throws NamingException {
-        return new OSGIUrlListContext(callerContext, env, name).list("");
+        return new OSGiUrlListContext(callerContext, env, name).list("");
     }
 
     @Override
@@ -195,7 +195,7 @@ public class OSGIUrlContext implements Context {
 
     @Override
     public NamingEnumeration<Binding> listBindings(Name name) throws NamingException {
-        return new OSGIUrlListContext(callerContext, env, name).listBindings("");
+        return new OSGiUrlListContext(callerContext, env, name).listBindings("");
     }
 
     @Override

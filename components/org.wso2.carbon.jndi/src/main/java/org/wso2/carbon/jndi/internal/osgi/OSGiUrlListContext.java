@@ -7,6 +7,7 @@ import javax.naming.Binding;
 import javax.naming.Context;
 import javax.naming.Name;
 import javax.naming.NameClassPair;
+import javax.naming.NameNotFoundException;
 import javax.naming.NameParser;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -17,13 +18,13 @@ import java.util.Map;
 /**
  * JNDI context implementation for handling osgi:servicelist lookup.
  */
-public class OSGIUrlListContext implements Context {
+public class OSGiUrlListContext implements Context {
 
     protected Map<String, Object> env;
     NameParser parser = new NameParserImpl();
     private BundleContext callerContext;
 
-    public OSGIUrlListContext(BundleContext callerContext, Map<String, Object> env, Name validName) {
+    public OSGiUrlListContext(BundleContext callerContext, Map<String, Object> env, Name validName) {
         //todo
     }
 
@@ -94,6 +95,20 @@ public class OSGIUrlListContext implements Context {
 
     @Override
     public NamingEnumeration<Binding> listBindings(String name) throws NamingException {
+        if (!"".equals(name)) {
+            throw new NameNotFoundException(name);
+        }
+//        final ServiceReference[] refs = getServiceRefs();
+//        return new ServiceNamingEnumeration<Binding>(callerContext, refs, new ThingManager<Binding>() {
+//            public Binding get(BundleContext ctx, ServiceReference ref) {
+//                Object service = ServiceHelper.getService(ctx, ref);
+//                return new Binding(serviceId(ref), service, true);
+//            }
+//
+//            public void release(BundleContext ctx, ServiceReference ref) {
+//                ctx.ungetService(ref);
+//            }
+//        });
         return null;
     }
 

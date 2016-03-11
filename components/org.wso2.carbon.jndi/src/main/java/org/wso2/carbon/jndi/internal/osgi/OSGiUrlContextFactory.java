@@ -28,10 +28,10 @@ import java.util.Hashtable;
 /**
  * URLContextFactory for osgi: namespace.
  */
-public class OSGiURLContextFactory implements ObjectFactory {
+public class OSGiUrlContextFactory implements ObjectFactory {
     private BundleContext callerContext;
 
-    public OSGiURLContextFactory(BundleContext callerContext) {
+    public OSGiUrlContextFactory(BundleContext callerContext) {
         this.callerContext = callerContext;
     }
 
@@ -40,6 +40,6 @@ public class OSGiURLContextFactory implements ObjectFactory {
                                     Name name,
                                     Context nameCtx,
                                     Hashtable<?, ?> environment) throws Exception {
-        return new OSGIUrlContext(callerContext, environment);
+        return new OSGiUrlContext(callerContext, environment);
     }
 }
