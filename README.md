@@ -49,6 +49,62 @@ DataSource dataSource = (DataSource) envContext.lookup("jdbc/wso2carbonDB");
 
 For full source code, see [Carbon JNDI samples] (samples).
 
+
+### 3) Using an custom InitialContext from JNDIContextManager service
+This way the returned context is an instance of the CustomInitialContext.
+```java
+ServiceRegistration serviceRegistration = bundleContext.registerService(InitialContextFactory.class.getName(),
+        new CustomInitialContextFactory(), null);
+Context initialContext = jndiContextManager.newInitialContext();
+DataSource dataSource = (DataSource) initialContext.lookup("java:comp/env/jdbc/wso2carbonDB");
+```
+
+Following is a sample InitialContextFactory class used in the sample. This returns a new CustomInitialContext.
+```java
+public class CustomInitialContextFactory implements InitialContextFactory {
+    @Override
+    public Context getInitialContext(Hashtable<?, ?> environment) throws NamingException {
+        return new CustomInitialContext(environment);
+    }
+}
+```
+Following is a sample CustomInitialContext class
+
+```java
+public class CustomInitialContext implements Context {
+
+    private Hashtable<String, Object> environment;
+
+    public CustomInitialContext(Hashtable<String, Object> environment) throws NamingException {
+        this.environment = environment;
+    }
+
+    @Override
+    public Object lookup(Name name) throws NamingException {
+        return null;
+    }
+
+    @Override
+    public Object lookup(String name) throws NamingException {
+        if ("contextFactoryClass".equals(name)) {
+            return contextFactoryClassName;
+        }
+
+        if ("contextFactoryBuilderClass".equals(name)) {
+            return contextFactoryBuilderClassName;
+        }
+        return null;
+    }
+
+    @Override
+    public Hashtable<?, ?> getEnvironment() throws NamingException {
+        return environment;
+    }
+
+    //implement methods
+}
+
+```
 ## Download 
 
 Use Maven snippet:
