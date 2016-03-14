@@ -47,8 +47,33 @@ Context envContext = initialContext.createSubcontext("java:comp/env");
 DataSource dataSource = (DataSource) envContext.lookup("jdbc/wso2carbonDB");
 ```
 
-For full source code, see [Carbon JNDI samples] (samples).
+### 3) Creating InitialContext with declarative services
 
+Following service component retrieves the JNDIContextManager and create InitialContext.
+
+```java
+public class ActivatorComponent {
+    @Reference(
+            name = "org.osgi.service.jndi",
+            service = JNDIContextManager.class,
+            cardinality = ReferenceCardinality.AT_LEAST_ONE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unbindNDIContextManager"
+    )
+    protected void bindJNDIContextManager(JNDIContextManager jndiContextManager) throws NamingException {
+
+        Context initialContext = jndiContextManager.newInitialContext();
+
+        DataSource dataSource = (DataSource) initialContext.lookup("java:comp/env/jdbc/wso2carbonDB");
+    }
+
+    protected void unbindNDIContextManager(JNDIContextManager jndiContextManager) throws NamingException  {
+        jndiContextManager.newInitialContext().close();
+    }
+}
+```
+
+For full source code, see [Carbon JNDI samples] (samples).
 ## Download 
 
 Use Maven snippet:
