@@ -67,7 +67,7 @@ public class ActivatorComponent {
         DataSource dataSource = (DataSource) initialContext.lookup("java:comp/env/jdbc/wso2carbonDB");
     }
 
-    protected void unbindNDIContextManager(JNDIContextManager jndiContextManager) throws NamingException{
+    protected void unbindNDIContextManager(JNDIContextManager jndiContextManager) throws NamingException  {
         jndiContextManager.newInitialContext().close();
     }
 }
