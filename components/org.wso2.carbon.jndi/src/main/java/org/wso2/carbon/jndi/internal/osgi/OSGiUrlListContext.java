@@ -1,6 +1,7 @@
 package org.wso2.carbon.jndi.internal.osgi;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.wso2.carbon.jndi.internal.util.NameParserImpl;
 
 import javax.naming.Binding;
@@ -30,12 +31,12 @@ public class OSGiUrlListContext implements Context {
 
     @Override
     public Object lookup(Name name) throws NamingException {
-        return null;
+        return null;  //todo
     }
 
     @Override
     public Object lookup(String name) throws NamingException {
-        return null;
+        return null;  //todo
     }
 
     @Override
@@ -95,20 +96,23 @@ public class OSGiUrlListContext implements Context {
 
     @Override
     public NamingEnumeration<Binding> listBindings(String name) throws NamingException {
-        if (!"".equals(name)) {
+        if (!"".equals(name)){
             throw new NameNotFoundException(name);
         }
-//        final ServiceReference[] refs = getServiceRefs();
-//        return new ServiceNamingEnumeration<Binding>(callerContext, refs, new ThingManager<Binding>() {
-//            public Binding get(BundleContext ctx, ServiceReference ref) {
-//                Object service = ServiceHelper.getService(ctx, ref);
-//                return new Binding(serviceId(ref), service, true);
-//            }
-//
-//            public void release(BundleContext ctx, ServiceReference ref) {
-//                ctx.ungetService(ref);
-//            }
-//        });
+        final ServiceReference[] refs = getServiceRefs();
+        return new ServiceNamingEnumeration<NameClassPair>(callerContext, refs, new ThingManager<NameClassPair>() {
+            public NameClassPair get(BundleContext ctx, ServiceReference ref)
+            {
+                Object service = ctx.getService(ref);
+                String className = (service != null) ? service.getClass().getName() : null;
+                ctx.ungetService(ref);
+                return new NameClassPair(serviceId(ref), className, true);
+            }
+
+            public void release(BundleContext ctx, ServiceReference ref)
+            {
+            }
+        });
         return null;
     }
 

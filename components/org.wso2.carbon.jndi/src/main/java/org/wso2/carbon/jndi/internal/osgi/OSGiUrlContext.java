@@ -17,19 +17,25 @@
 */
 package org.wso2.carbon.jndi.internal.osgi;
 
+import org.osgi.framework.AdminPermission;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.jndi.JNDIConstants;
 import org.wso2.carbon.jndi.internal.util.NameParserImpl;
 
 import javax.naming.Binding;
 import javax.naming.Context;
 import javax.naming.Name;
 import javax.naming.NameClassPair;
+import javax.naming.NameNotFoundException;
 import javax.naming.NameParser;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.OperationNotSupportedException;
+import java.security.AccessControlException;
+import java.security.AccessController;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -46,51 +52,109 @@ public class OSGiUrlContext implements Context {
      */
     protected Map<String, Object> env;
     private BundleContext callerContext;
-    public static final String OSGI_SCHEME = "osgi";
     public static final String SERVICE_PATH = "service";
-    public static final String SERVICES_PATH = "services";
     public static final String SERVICE_LIST_PATH = "servicelist";
-    NameParser parser = new NameParserImpl();
+    public static final String FRAMEWORK_PATH = "framework";
+    public static final String BUNDLE_CONTEXT = "bundlContext";
+    NameParser parser;
 
     public OSGiUrlContext(BundleContext callerContext, Hashtable<?, ?> environment) {
         this.callerContext = callerContext;
+        parser = new NameParserImpl();
         env = new HashMap<>();
         env.putAll((Map<? extends String, ?>) environment);
     }
 
     @Override
     public Object lookup(Name name) throws NamingException {
-
+        Object lookupResult;
         OSGiName osGiName = (OSGiName) name;
         String scheme = name.get(0);
         String interfaceName = null;
         String filter = null;
-
-        if (osGiName.hasInterface()) {
-            interfaceName = osGiName.get(1);
-        }
-        if (osGiName.hasFilter()) {
-            filter = osGiName.get(2);
-        }
-
         //The owning bundle is the bundle that requested the initial Context from the JNDI Context Manager
         //service or received its Context through the InitialContext class
         if (osGiName.hasInterface()) {
-            return callerContext.getServiceReference(interfaceName);
-        } else if (getSchemePath(scheme).equals(SERVICE_PATH)) {
-            //returns the service with highest
-            //service.ranking and the lowest service.id
-            return findService(callerContext, interfaceName, filter);
-        } else if (getSchemePath(scheme).equals(SERVICE_LIST_PATH)) {
-            //a Context object is returned instead of a service objects
-            return new OSGiUrlListContext(callerContext, env, name);
+            interfaceName = osGiName.get(1);
+            if (FRAMEWORK_PATH.equals(getSchemePath(scheme)) && BUNDLE_CONTEXT.equals(interfaceName)) {
+                //A JNDI client can also obtain the Bundle Context of the owning bundle by using the osgi: scheme
+                //namespace with the framework/bundleContext name.
+                //osgi:framework/bundleContext.
+                return callerContext;
+            } else if (getSchemePath(scheme).equals(SERVICE_PATH)) {
+                //The lookup for a URL with the osgi: scheme and service path returns the service with highest
+                //service.ranking and the lowest service.id. This scheme only allows a single service to be found
+                lookupResult = getService(callerContext, osGiName, null, true, env);
+            } else if (getSchemePath(scheme).equals(SERVICE_LIST_PATH)) {
+                //If this osgi:servicelist scheme is used from a lookup method then a Context object is returned
+                //instead of a service object
+                lookupResult = new OSGiUrlListContext(callerContext, env, name);
+            } else {
+                lookupResult = null;
+            }
+
+        } else {
+            lookupResult = new OSGiUrlListContext(callerContext, env, name);
         }
 
+        if (lookupResult == null) {
+            throw new NameNotFoundException(name.toString());
+        }
 
-        return null;
+        return lookupResult;
     }
 
-    private static Object findService(BundleContext ctx, String interface1, String filter)
+    private Object getService(BundleContext ctx, OSGiName lookupName, String id,
+                              boolean dynamicRebind, Map<String, Object> env) throws NamingException {
+        String interfaceName = lookupName.get(1);
+        String filter = lookupName.hasFilter()? lookupName.get(2) : null;
+        String serviceName = lookupName.getServiceName();  //todo
+
+        if (id != null) {
+            if (filter == null) {
+                filter = '(' + Constants.SERVICE_ID + '=' + id + ')';
+            } else {
+                filter = "(&(" + Constants.SERVICE_ID + '=' + id + ')' + filter + ')';
+            }
+        }
+
+        ServicePair pair = null;
+
+        if (!lookupName.isServiceNameBased()) {
+            pair = findService(ctx, interfaceName, filter);
+        }
+
+        if (pair == null) {
+            interfaceName = null;
+            if (id == null) {
+                filter = "(" + JNDIConstants.JNDI_SERVICENAME + "=" + serviceName + ')';
+            } else {
+                filter = "(&(" + Constants.SERVICE_ID + '=' + id + ")(" + JNDIConstants.JNDI_SERVICENAME
+                        + "=" + serviceName + "))";
+            }
+            pair = findService(ctx, interfaceName, filter);
+        }
+
+        Object result = null;
+
+        if (pair != null) {
+            if (requireProxy) {
+                Object obj = env.get(org.apache.aries.jndi.api.JNDIConstants.REBIND_TIMEOUT);
+                int timeout = 0;
+                if (obj instanceof String) {
+                    timeout = Integer.parseInt((String) obj);
+                } else if (obj instanceof Integer) {
+                    timeout = (Integer) obj;
+                }
+
+                result = proxy(interfaceName, filter, dynamicRebind, ctx, pair, timeout);
+            }
+        }
+
+        return result;
+    }
+
+    private Object findService(BundleContext ctx, String interface1, String filter)
             throws NamingException {
         Object p = null;
 
@@ -121,7 +185,6 @@ public class OSGiUrlContext implements Context {
 
         return p;
     }
-
 
     public String getSchemePath(String scheme) {
         String part0 = scheme;  //osgi:service or osgi:servicelist
@@ -190,7 +253,7 @@ public class OSGiUrlContext implements Context {
 
     @Override
     public NamingEnumeration<NameClassPair> list(String name) throws NamingException {
-        return null; //todo call above list() method
+        return list(parser.parse(name));
     }
 
     @Override
@@ -200,7 +263,7 @@ public class OSGiUrlContext implements Context {
 
     @Override
     public NamingEnumeration<Binding> listBindings(String name) throws NamingException {
-        return null;  //todo call above
+        return listBindings(parser.parse(name));
     }
 
     @Override
