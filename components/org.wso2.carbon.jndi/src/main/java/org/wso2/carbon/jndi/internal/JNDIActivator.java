@@ -61,7 +61,7 @@ public class JNDIActivator implements BundleActivator {
             //register osgi url scheme
             Dictionary<String, String> osgiPropertyMap = new Hashtable<>();
             osgiPropertyMap.put(JNDIConstants.JNDI_URLSCHEME, "osgi");
-            bundleContext.registerService(ObjectFactory.class.getName(), new OSGiUrlContextServiceFactory(), null);
+            bundleContext.registerService(ObjectFactory.class.getName(), new OSGiUrlContextServiceFactory(), osgiPropertyMap);
 
             // InitialContextFactory Provider should be registered with its implementation class as well as the
             // InitialContextFactory class.

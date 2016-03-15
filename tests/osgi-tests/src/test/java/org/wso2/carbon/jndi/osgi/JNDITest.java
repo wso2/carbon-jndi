@@ -23,7 +23,6 @@ import org.ops4j.pax.exam.spi.reactors.PerClass;
 import org.ops4j.pax.exam.testng.listener.PaxExam;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.testng.annotations.Listeners;
@@ -36,21 +35,13 @@ import org.wso2.carbon.jndi.osgi.factories.BundleContextICFServiceFactory;
 import org.wso2.carbon.jndi.osgi.factories.ExceptionInitialContextFactory;
 import org.wso2.carbon.jndi.osgi.factories.FooInitialContextFactory;
 import org.wso2.carbon.jndi.osgi.factories.NullInitialContextFactory;
+import org.wso2.carbon.jndi.osgi.osgiServices.FooService;
+import org.wso2.carbon.jndi.osgi.osgiServices.impl.FooServiceImpl1;
+import org.wso2.carbon.jndi.osgi.osgiServices.impl.FooServiceImpl2;
 import org.wso2.carbon.jndi.osgi.util.DummyBundleClassLoader;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 import org.wso2.carbon.osgi.test.util.CarbonSysPropConfiguration;
 import org.wso2.carbon.osgi.test.util.OSGiTestConfigurationUtils;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Dictionary;
-
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 import javax.naming.Context;
@@ -59,10 +50,18 @@ import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.spi.InitialContextFactory;
 import javax.naming.spi.InitialContextFactoryBuilder;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.*;
 
 @Listeners(PaxExam.class)
 @ExamReactorStrategy(PerClass.class)
@@ -407,17 +406,62 @@ public class JNDITest {
 
     /**
      * In this test we are trying do a osgi:service lookup.
-     * The lookup query need to follow the scheme osgi:service/<interface>[/<filter>].
+     * We register a service in the bundle context and do a lookup.
      */
     @Test(dependsOnMethods = "testJNDIContextManagerWithEnvironmentContextFactoryBuilder")
-    public void testOSGIUrlWithJNDI() throws NamingException {
+    public void testOSGIUrlWithServiceScheme() throws NamingException {
+        FooService fooService = new FooServiceImpl1();
+        ServiceRegistration<FooService> fooServiceRegistration = bundleContext.registerService(FooService.class, fooService, null);
+        Context context = jndiContextManager.newInitialContext();
+
+        //url scheme: osgi:service/<interface>
+        FooServiceImpl1 service = (FooServiceImpl1) context.lookup("osgi:service/org.wso2.carbon.jndi.osgi.osgiServices.FooService");
+
+        assertNotNull(service, "Specified interface does not registered with bundle context");
+        fooServiceRegistration.unregister();
+    }
+
+    /**
+     * In this test we are trying do a osgi:service lookup.
+     * We register two services in the bundle context with different service rankings and perform a lookup.
+     */
+    @Test(dependsOnMethods = "testOSGIUrlWithServiceScheme")
+    public void testOSGIUrlWithServiceRanking() throws NamingException {
+        Dictionary<String, Object> propertyMap = new Hashtable<>();
+        propertyMap.put("service.ranking", 10);
+        FooService fooService = new FooServiceImpl1();
+        ServiceRegistration<FooService> fooServiceRegistration = bundleContext.registerService(
+                FooService.class, fooService, propertyMap);
+        Context context = jndiContextManager.newInitialContext();
+
+        Object service = context.lookup("osgi:service/org.wso2.carbon.jndi.osgi.osgiServices.FooService");
+
+        assertTrue((service instanceof FooServiceImpl1), "Specified interface does not registered with bundle context");
+
+        propertyMap.put("service.ranking", 20);
+        FooService fooService2 = new FooServiceImpl2();
+        ServiceRegistration<FooService> fooService2Registration = bundleContext.registerService(
+                FooService.class, fooService2, propertyMap);
+        context = jndiContextManager.newInitialContext();
+
+        service = context.lookup("osgi:service/org.wso2.carbon.jndi.osgi.osgiServices.FooService");
+
+        assertTrue(service instanceof FooServiceImpl2, "Specified service does not returned as per ranking order" +
+                " OR Specified interface does not registered with bundle context");
+        fooServiceRegistration.unregister();
+        fooService2Registration.unregister();
+    }
+
+    /**
+     * In this test we are trying do a osgi:servicelist lookup which should return a Context object.
+     */
+    @Test(dependsOnMethods = "testOSGIUrlWithServiceRanking")
+    public void testOSGIUrlWithServiceListScheme() throws NamingException {
 
         Context context = jndiContextManager.newInitialContext();
 
-        org.osgi.framework.ServiceReference osgiServiceReference =
-                (ServiceReference) context.lookup("osgi:service/javax.naming.spi.ObjectFactory");
+        Object service = context.lookup("osgi:servicelist");
 
-
-        assertNotNull(osgiServiceReference, "Specified interface does not registered with bundle context");
+        assertTrue(service instanceof Context, "No Context object returned from osg:servicelist scheme");
     }
 }

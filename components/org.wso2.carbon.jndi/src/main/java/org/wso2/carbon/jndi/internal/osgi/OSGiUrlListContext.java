@@ -1,82 +1,37 @@
 package org.wso2.carbon.jndi.internal.osgi;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
-import org.wso2.carbon.jndi.internal.util.NameParserImpl;
 
 import javax.naming.Binding;
-import javax.naming.Context;
 import javax.naming.Name;
 import javax.naming.NameClassPair;
 import javax.naming.NameNotFoundException;
-import javax.naming.NameParser;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.OperationNotSupportedException;
-import java.util.Hashtable;
 import java.util.Map;
 
 /**
  * JNDI context implementation for handling osgi:servicelist lookup.
  */
-public class OSGiUrlListContext implements Context {
+public class OSGiUrlListContext extends AbstractOSGiUrlContext {
 
-    protected Map<String, Object> env;
-    NameParser parser = new NameParserImpl();
-    private BundleContext callerContext;
-
-    public OSGiUrlListContext(BundleContext callerContext, Map<String, Object> env, Name validName) {
-        //todo
+    public OSGiUrlListContext(BundleContext callerContext, Map<String, Object> environment, Name validName) {
+        super(callerContext, environment, validName);
     }
 
     @Override
     public Object lookup(Name name) throws NamingException {
-        return null;  //todo
+        return lookup(name.toString());
     }
 
     @Override
     public Object lookup(String name) throws NamingException {
-        return null;  //todo
-    }
-
-    @Override
-    public void bind(Name name, Object obj) throws NamingException {
-        throw new OperationNotSupportedException();
-    }
-
-    @Override
-    public void bind(String name, Object obj) throws NamingException {
-        throw new OperationNotSupportedException();
-    }
-
-    @Override
-    public void rebind(Name name, Object obj) throws NamingException {
-        throw new OperationNotSupportedException();
-    }
-
-    @Override
-    public void rebind(String name, Object obj) throws NamingException {
-        throw new OperationNotSupportedException();
-    }
-
-    @Override
-    public void unbind(Name name) throws NamingException {
-        throw new OperationNotSupportedException();
-    }
-
-    @Override
-    public void unbind(String name) throws NamingException {
-        throw new OperationNotSupportedException();
-    }
-
-    @Override
-    public void rename(Name oldName, Name newName) throws NamingException {
-        throw new OperationNotSupportedException();
-    }
-
-    @Override
-    public void rename(String oldName, String newName) throws NamingException {
-        throw new OperationNotSupportedException();
+        OSGiName osGiName = new OSGiName(name);
+        Object result = findService(callerContext, osGiName, name, env);
+        if (result == null) {
+            throw new NameNotFoundException(name.toString());
+        }
+        return result;
     }
 
     @Override
@@ -96,64 +51,7 @@ public class OSGiUrlListContext implements Context {
 
     @Override
     public NamingEnumeration<Binding> listBindings(String name) throws NamingException {
-        if (!"".equals(name)){
-            throw new NameNotFoundException(name);
-        }
-        final ServiceReference[] refs = getServiceRefs();
-        return new ServiceNamingEnumeration<NameClassPair>(callerContext, refs, new ThingManager<NameClassPair>() {
-            public NameClassPair get(BundleContext ctx, ServiceReference ref)
-            {
-                Object service = ctx.getService(ref);
-                String className = (service != null) ? service.getClass().getName() : null;
-                ctx.ungetService(ref);
-                return new NameClassPair(serviceId(ref), className, true);
-            }
-
-            public void release(BundleContext ctx, ServiceReference ref)
-            {
-            }
-        });
-        return null;
-    }
-
-    @Override
-    public void destroySubcontext(Name name) throws NamingException {
-        throw new OperationNotSupportedException();
-    }
-
-    @Override
-    public void destroySubcontext(String name) throws NamingException {
-        throw new OperationNotSupportedException();
-    }
-
-    @Override
-    public Context createSubcontext(Name name) throws NamingException {
-        throw new OperationNotSupportedException();
-    }
-
-    @Override
-    public Context createSubcontext(String name) throws NamingException {
-        throw new OperationNotSupportedException();
-    }
-
-    @Override
-    public Object lookupLink(Name name) throws NamingException {
-        throw new OperationNotSupportedException();
-    }
-
-    @Override
-    public Object lookupLink(String name) throws NamingException {
-        throw new OperationNotSupportedException();
-    }
-
-    @Override
-    public NameParser getNameParser(Name name) throws NamingException {
-        return parser;
-    }
-
-    @Override
-    public NameParser getNameParser(String name) throws NamingException {
-        return parser;
+        return null;  //todo
     }
 
     @Override
@@ -164,23 +62,6 @@ public class OSGiUrlListContext implements Context {
     @Override
     public String composeName(String name, String prefix) throws NamingException {
         return null;
-    }
-
-    @Override
-    public Object addToEnvironment(String propName, Object propVal) throws NamingException {
-        return env.put(propName, propVal);
-    }
-
-    @Override
-    public Object removeFromEnvironment(String propName) throws NamingException {
-        return env.remove(propName);
-    }
-
-    @Override
-    public Hashtable<?, ?> getEnvironment() throws NamingException {
-        Hashtable<Object, Object> environment = new Hashtable<>();
-        environment.putAll(env);
-        return environment;
     }
 
     @Override
