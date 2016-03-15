@@ -83,7 +83,7 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
                 Collection<ServiceReference<InitialContextFactory>> factorySRefCollection =
                         getServiceReferences(InitialContextFactory.class, getServiceFilter(userDefinedICFClassName));
                 initialContext = getInitialContextFromFactory(factorySRefCollection, env);
-                if(initialContext.isPresent()){
+                if (initialContext.isPresent()) {
                     ObjectFactory objectFactory = new DefaultObjectFactoryBuilder().createObjectFactory(reference, env);
                     return objectFactory.getObjectInstance(reference, name, initialContext.get(), env);
                 }
@@ -99,8 +99,8 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
                 while (refAddrEnumeration.hasMoreElements()) {
                     RefAddr refAddr = refAddrEnumeration.nextElement();
                     List<String> refUrls = new ArrayList<>();
-                    if(refAddr instanceof StringRefAddr && refAddr.getType().equals(ADDRESS_TYPE)){
-                        String urlScheme = getUrlScheme((String)refAddr.getContent());
+                    if (refAddr instanceof StringRefAddr && refAddr.getType().equals(ADDRESS_TYPE)) {
+                        String urlScheme = getUrlScheme((String) refAddr.getContent());
                         //todo get registered urlcontext factory and create object  , there is already a javaURLContextFactory mapped
                         //TODO register a URL context factory with property osgi.jndi.url.scheme in activator
                     }
