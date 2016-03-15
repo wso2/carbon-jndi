@@ -37,9 +37,8 @@ import java.util.Map;
 /**
  * Abstract class for common method implementations for
  * OSGiUrlContext.
- *
  */
-public abstract class AbstractOSGiUrlContext implements Context{
+public abstract class AbstractOSGiUrlContext implements Context {
 
     /**
      * The environment for this context
