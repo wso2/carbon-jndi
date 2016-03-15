@@ -24,6 +24,6 @@ public class FooServiceImpl2 implements FooService {
     public FooServiceImpl2() {
     }
 
-    public FooServiceImpl2(String vendor) {
+    public FooServiceImpl2(String name) {
     }
 }

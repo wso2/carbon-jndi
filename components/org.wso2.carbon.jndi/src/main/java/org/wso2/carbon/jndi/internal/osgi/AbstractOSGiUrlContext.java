@@ -221,4 +221,14 @@ public abstract class AbstractOSGiUrlContext implements Context{
     public String getNameInNamespace() throws NamingException {
         throw new OperationNotSupportedException();
     }
+
+    @Override
+    public Name composeName(Name name, Name prefix) throws NamingException {
+        return parser.parse(prefix + "/" + name);
+    }
+
+    @Override
+    public String composeName(String name, String prefix) throws NamingException {
+        return prefix + "/" + name;
+    }
 }

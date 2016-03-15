@@ -119,16 +119,6 @@ public class OSGiUrlContext extends AbstractOSGiUrlContext {
     }
 
     @Override
-    public Name composeName(Name name, Name prefix) throws NamingException {
-        return null;  //todo
-    }
-
-    @Override
-    public String composeName(String name, String prefix) throws NamingException {
-        return null; //todo
-    }
-
-    @Override
     public void close() throws NamingException {
 
     }
