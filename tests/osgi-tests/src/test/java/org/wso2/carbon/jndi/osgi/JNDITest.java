@@ -464,4 +464,26 @@ public class JNDITest {
 
         assertTrue(service instanceof Context, "No Context object returned from osg:servicelist scheme");
     }
+
+    /**
+     * In this test we are trying do a osgi:service lookup setting the
+     * osgi.jndi.service.name.
+     */
+    @Test(dependsOnMethods = "testOSGIUrlWithServiceListScheme")
+    public void testOSGIUrlWithJNDIServiceName() throws NamingException {
+        Dictionary<String, Object> propertyMap = new Hashtable<>();
+        propertyMap.put("osgi.jndi.service.name", "foo/myService");
+
+        FooService fooService = new FooServiceImpl1();
+        ServiceRegistration<FooService> fooServiceRegistration = bundleContext.registerService(
+                FooService.class, fooService, propertyMap);
+        Context context = jndiContextManager.newInitialContext();
+
+        Object service = context.lookup("osgi:service/foo/myService");
+
+        assertNotNull(service, "No Context object returned from osg:servicelist scheme");  //todo
+        fooServiceRegistration.unregister();
+    }
+    //todo test jndiServiceName lookup()
+    //todo osgi:framework/bundlContext
 }

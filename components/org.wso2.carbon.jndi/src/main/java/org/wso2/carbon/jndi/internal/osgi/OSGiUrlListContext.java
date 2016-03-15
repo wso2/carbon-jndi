@@ -3,6 +3,7 @@ package org.wso2.carbon.jndi.internal.osgi;
 import org.osgi.framework.BundleContext;
 
 import javax.naming.Binding;
+import javax.naming.InvalidNameException;
 import javax.naming.Name;
 import javax.naming.NameClassPair;
 import javax.naming.NameNotFoundException;
@@ -14,9 +15,12 @@ import java.util.Map;
  * JNDI context implementation for handling osgi:servicelist lookup.
  */
 public class OSGiUrlListContext extends AbstractOSGiUrlContext {
+    private OSGiName osgiLookupName;
 
-    public OSGiUrlListContext(BundleContext callerContext, Map<String, Object> environment, Name validName) {
-        super(callerContext, environment, validName);
+    public OSGiUrlListContext(BundleContext callerContext, Map<String, Object> environment, Name name)
+            throws InvalidNameException {
+        super(callerContext, environment, name);
+        osgiLookupName = new OSGiName(name);
     }
 
     @Override
@@ -26,10 +30,9 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
 
     @Override
     public Object lookup(String name) throws NamingException {
-        OSGiName osGiName = new OSGiName(name);
-        Object result = findService(callerContext, osGiName, name, env);
+        Object result = findService(callerContext, osgiLookupName, name, env);
         if (result == null) {
-            throw new NameNotFoundException(name.toString());
+            throw new NameNotFoundException(name);
         }
         return result;
     }
@@ -63,7 +66,7 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
     public String composeName(String name, String prefix) throws NamingException {
         return null;
     }
-
+    
     @Override
     public void close() throws NamingException {
 

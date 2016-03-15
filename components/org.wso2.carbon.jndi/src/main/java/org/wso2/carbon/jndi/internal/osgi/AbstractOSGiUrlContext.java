@@ -66,6 +66,7 @@ public abstract class AbstractOSGiUrlContext implements Context{
         env = environment;
     }
 
+    //todo move to a util class?
     protected Object findService(BundleContext ctx, OSGiName lookupName, String id,
                                  Map<String, Object> env) throws NamingException {
         String interfaceName = lookupName.get(1);
