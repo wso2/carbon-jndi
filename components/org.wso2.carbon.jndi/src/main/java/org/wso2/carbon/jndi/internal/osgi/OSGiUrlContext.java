@@ -49,7 +49,7 @@ public class OSGiUrlContext extends AbstractOSGiUrlContext {
         //The owning bundle is the bundle that requested the initial Context from the JNDI Context Manager
         //service or received its Context through the InitialContext class
         if (osGiName.hasInterface()) {
-            interfaceName = osGiName.get(1);
+            interfaceName = osGiName.getInterface();
             if (FRAMEWORK_PATH.equals(getSchemePath(scheme)) && BUNDLE_CONTEXT.equals(interfaceName)) {
                 //A JNDI client can also obtain the Bundle Context of the owning bundle by using the osgi: scheme
                 //namespace with the framework/bundleContext name.
@@ -58,7 +58,7 @@ public class OSGiUrlContext extends AbstractOSGiUrlContext {
             } else if (getSchemePath(scheme).equals(SERVICE_PATH)) {
                 //The lookup for a URL with the osgi: scheme and service path returns the service with highest
                 //service.ranking and the lowest service.id. This scheme only allows a single service to be found
-                lookupResult = findService(callerContext, osGiName, null, env);
+                lookupResult = findService(callerContext, osGiName, env);
             } else if (getSchemePath(scheme).equals(SERVICE_LIST_PATH)) {
                 //If this osgi:servicelist scheme is used from a lookup method then a Context object is returned
                 //instead of a service object

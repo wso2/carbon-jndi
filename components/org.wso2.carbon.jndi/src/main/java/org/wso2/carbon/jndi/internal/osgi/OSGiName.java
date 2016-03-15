@@ -23,7 +23,9 @@ public class OSGiName extends CompositeName {
     }
 
     public boolean hasFilter() {
-        return size() > 2;
+        //following query will result size()>3 as size() will count the components separated by "/"
+        //osgi:service/org.wso2.carbon.jndi.osgi.osgiServices.FooService/(osgi.jndi.service.name=foo/myService)
+        return size() == 3;
     }
 
     public String getJNDIServiceName() {
@@ -41,5 +43,13 @@ public class OSGiName extends CompositeName {
         }
 
         return builder.toString();
+    }
+
+    public String getInterface() {
+        return hasInterface() ? get(1) : null;
+    }
+
+    public String getFilter() {
+        return hasFilter() ? get(2) : null;
     }
 }

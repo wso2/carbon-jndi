@@ -18,7 +18,6 @@
 package org.wso2.carbon.jndi.internal.osgi;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.jndi.JNDIConstants;
@@ -67,24 +66,18 @@ public abstract class AbstractOSGiUrlContext implements Context{
     }
 
     //todo move to a util class?
-    protected Object findService(BundleContext ctx, OSGiName lookupName, String id,
+    protected Object findService(BundleContext ctx, OSGiName lookupName,
                                  Map<String, Object> env) throws NamingException {
-        String interfaceName = lookupName.get(1);
-        String filter = lookupName.hasFilter()? lookupName.get(2) : null;
+        String interfaceName = lookupName.getInterface();
+        String filter = lookupName.getFilter();
         String serviceName = lookupName.getJNDIServiceName();
 
         Object result;
-        //todo if id !=null
         result = getService(ctx, interfaceName, filter);
 
         if (result == null) {
             interfaceName = null;
-            if (id == null) {
-                filter = "(" + JNDIConstants.JNDI_SERVICENAME + "=" + serviceName + ')';
-            } else {
-                filter = "(&(" + Constants.SERVICE_ID + '=' + id + ")(" + JNDIConstants.JNDI_SERVICENAME
-                        + "=" + serviceName + "))";
-            }
+            filter = "(" + JNDIConstants.JNDI_SERVICENAME + "=" + serviceName + ')';
             result = getService(ctx, interfaceName, filter);
         }
 
@@ -115,7 +108,9 @@ public abstract class AbstractOSGiUrlContext implements Context{
             }
 
         } catch (InvalidSyntaxException e) {
-            // ignore
+            // If we get an invalid syntax exception we just ignore and return
+            // a null. eg: for queries :- osgi:service/foo/myService (where "foo/myService" is the
+            // osgi.jndi.service.name and this may read filter=myService which causes and invalid syntax exception)
         }
         return null;
     }
