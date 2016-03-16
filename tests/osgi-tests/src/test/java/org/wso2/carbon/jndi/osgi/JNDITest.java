@@ -174,8 +174,6 @@ public class JNDITest {
                         "environment variable has not been picked up");
 
         serviceRegistration.unregister();
-
-        //TODO get BundleContext from TCCL and callers class context
     }
 
     /**
