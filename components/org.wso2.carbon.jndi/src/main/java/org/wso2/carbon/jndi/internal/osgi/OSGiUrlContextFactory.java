@@ -20,10 +20,10 @@ package org.wso2.carbon.jndi.internal.osgi;
 
 import org.osgi.framework.BundleContext;
 
+import java.util.Hashtable;
 import javax.naming.Context;
 import javax.naming.Name;
 import javax.naming.spi.ObjectFactory;
-import java.util.Hashtable;
 
 /**
  * URLContextFactory for osgi: namespace.

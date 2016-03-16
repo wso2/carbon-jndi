@@ -28,12 +28,14 @@ import org.osgi.framework.ServiceRegistration;
 public class OSGiUrlContextServiceFactory implements ServiceFactory<OSGiUrlContextFactory> {
 
     @Override
-    public OSGiUrlContextFactory getService(Bundle bundle, ServiceRegistration<OSGiUrlContextFactory> serviceRegistration) {
+    public OSGiUrlContextFactory getService(Bundle bundle,
+                                            ServiceRegistration<OSGiUrlContextFactory> serviceRegistration) {
         return new OSGiUrlContextFactory(bundle.getBundleContext());
     }
 
     @Override
-    public void ungetService(Bundle bundle, ServiceRegistration<OSGiUrlContextFactory> serviceRegistration, OSGiUrlContextFactory osGiURLContextFactory) {
+    public void ungetService(Bundle bundle, ServiceRegistration<OSGiUrlContextFactory> serviceRegistration,
+                             OSGiUrlContextFactory osGiURLContextFactory) {
 
     }
 }

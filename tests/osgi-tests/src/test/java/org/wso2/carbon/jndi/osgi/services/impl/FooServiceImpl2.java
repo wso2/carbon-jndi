@@ -15,15 +15,15 @@
 *  specific language governing permissions and limitations
 *  under the License.
 */
-package org.wso2.carbon.jndi.osgi.osgiServices.impl;
+package org.wso2.carbon.jndi.osgi.services.impl;
 
-import org.wso2.carbon.jndi.osgi.osgiServices.FooService;
+import org.wso2.carbon.jndi.osgi.services.FooService;
 
-public class FooServiceImpl1 implements FooService {
+public class FooServiceImpl2 implements FooService {
 
-    public FooServiceImpl1() {
+    public FooServiceImpl2() {
     }
 
-    public FooServiceImpl1(String name) {
+    public FooServiceImpl2(String name) {
     }
 }

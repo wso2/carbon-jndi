@@ -19,13 +19,13 @@ package org.wso2.carbon.jndi.internal.osgi;
 
 import org.osgi.framework.BundleContext;
 
+import java.util.Hashtable;
 import javax.naming.Binding;
 import javax.naming.Name;
 import javax.naming.NameClassPair;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import java.util.Hashtable;
 
 /**
  * JNDI context implementation for handling osgi:service lookup.

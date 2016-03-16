@@ -18,10 +18,10 @@
 
 package org.wso2.carbon.jndi.internal.osgi;
 
+import java.util.Enumeration;
 import javax.naming.CompositeName;
 import javax.naming.InvalidNameException;
 import javax.naming.Name;
-import java.util.Enumeration;
 
 /**
  * A composite name to represent Osgi url scheme.
@@ -42,7 +42,7 @@ public class OSGiName extends CompositeName {
 
     public boolean hasFilter() {
         //following query will result size()>3 as size() will count the components separated by "/"
-        //osgi:service/org.wso2.carbon.jndi.osgi.osgiServices.FooService/(osgi.jndi.service.name=foo/myService)
+        //osgi:service/org.wso2.carbon.jndi.osgi.services.FooService/(osgi.jndi.service.name=foo/myService)
         return size() == 3;
     }
 

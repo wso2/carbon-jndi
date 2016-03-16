@@ -22,12 +22,12 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 
-import javax.naming.Binding;
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javax.naming.Binding;
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
 
 /**
  * OSGiServiceBinding enumeration implementation..

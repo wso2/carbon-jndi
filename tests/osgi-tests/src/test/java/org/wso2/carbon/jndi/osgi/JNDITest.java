@@ -36,23 +36,14 @@ import org.wso2.carbon.jndi.osgi.factories.BundleContextICFServiceFactory;
 import org.wso2.carbon.jndi.osgi.factories.ExceptionInitialContextFactory;
 import org.wso2.carbon.jndi.osgi.factories.FooInitialContextFactory;
 import org.wso2.carbon.jndi.osgi.factories.NullInitialContextFactory;
-import org.wso2.carbon.jndi.osgi.osgiServices.FooService;
-import org.wso2.carbon.jndi.osgi.osgiServices.impl.FooServiceImpl1;
-import org.wso2.carbon.jndi.osgi.osgiServices.impl.FooServiceImpl2;
+import org.wso2.carbon.jndi.osgi.services.FooService;
+import org.wso2.carbon.jndi.osgi.services.impl.FooServiceImpl1;
+import org.wso2.carbon.jndi.osgi.services.impl.FooServiceImpl2;
 import org.wso2.carbon.jndi.osgi.util.DummyBundleClassLoader;
 import org.wso2.carbon.kernel.utils.CarbonServerInfo;
 import org.wso2.carbon.osgi.test.util.CarbonSysPropConfiguration;
 import org.wso2.carbon.osgi.test.util.OSGiTestConfigurationUtils;
 
-import javax.inject.Inject;
-import javax.naming.Binding;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NameClassPair;
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.spi.InitialContextFactory;
-import javax.naming.spi.InitialContextFactoryBuilder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -63,8 +54,20 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
+import javax.naming.Binding;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NameClassPair;
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
+import javax.naming.spi.InitialContextFactory;
+import javax.naming.spi.InitialContextFactoryBuilder;
+
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 @Listeners(PaxExam.class)
 @ExamReactorStrategy(PerClass.class)
@@ -420,7 +423,7 @@ public class JNDITest {
 
         //url scheme: osgi:service/<interface>
         FooServiceImpl1 service =
-                (FooServiceImpl1) context.lookup("osgi:service/org.wso2.carbon.jndi.osgi.osgiServices.FooService");
+                (FooServiceImpl1) context.lookup("osgi:service/org.wso2.carbon.jndi.osgi.services.FooService");
 
         assertNotNull(service, "Specified interface does not registered with bundle context");
         fooServiceRegistration.unregister();
@@ -439,7 +442,7 @@ public class JNDITest {
                 FooService.class, fooService, propertyMap);
         Context context = jndiContextManager.newInitialContext();
 
-        Object service = context.lookup("osgi:service/org.wso2.carbon.jndi.osgi.osgiServices.FooService");
+        Object service = context.lookup("osgi:service/org.wso2.carbon.jndi.osgi.services.FooService");
 
         assertTrue((service instanceof FooServiceImpl1), "Specified interface does not registered with bundle context");
 
@@ -449,7 +452,7 @@ public class JNDITest {
                 FooService.class, fooService2, propertyMap);
         context = jndiContextManager.newInitialContext();
 
-        service = context.lookup("osgi:service/org.wso2.carbon.jndi.osgi.osgiServices.FooService");
+        service = context.lookup("osgi:service/org.wso2.carbon.jndi.osgi.services.FooService");
 
         assertTrue(service instanceof FooServiceImpl2, "Specified service does not returned as per ranking order" +
                 " OR Specified interface does not registered with bundle context");
@@ -489,7 +492,7 @@ public class JNDITest {
         assertTrue(service instanceof FooServiceImpl1, "Specified service does not returned" +
                 " OR Specified interface does not registered with bundle context");
 
-        service = context.lookup("osgi:service/org.wso2.carbon.jndi.osgi.osgiServices.FooService/" +
+        service = context.lookup("osgi:service/org.wso2.carbon.jndi.osgi.services.FooService/" +
                 "(osgi.jndi.service.name=foo/myService)");
 
         assertTrue(service instanceof FooServiceImpl1, "Specified service does not returned" +
@@ -517,7 +520,7 @@ public class JNDITest {
         assertTrue(service instanceof FooServiceImpl1, "Specified service does not returned" +
                 " OR Specified interface does not registered with bundle context");
 
-        service = context.lookup("osgi:service/org.wso2.carbon.jndi.osgi.osgiServices.FooService/" +
+        service = context.lookup("osgi:service/org.wso2.carbon.jndi.osgi.services.FooService/" +
                 "(osgi.jndi.service.name=foo)");
 
         assertTrue(service instanceof FooServiceImpl1, "Specified service does not returned" +
@@ -539,7 +542,7 @@ public class JNDITest {
         Context context = jndiContextManager.newInitialContext();
 
         NamingEnumeration<NameClassPair> namingEnumeration =
-                context.list("osgi:servicelist/org.wso2.carbon.jndi.osgi.osgiServices.FooService");
+                context.list("osgi:servicelist/org.wso2.carbon.jndi.osgi.services.FooService");
 
         assertTrue(namingEnumeration.hasMoreElements());
 
@@ -565,7 +568,7 @@ public class JNDITest {
         Context context = jndiContextManager.newInitialContext();
 
         NamingEnumeration<NameClassPair> namingEnumeration =
-                context.list("osgi:service/org.wso2.carbon.jndi.osgi.osgiServices.FooService");
+                context.list("osgi:service/org.wso2.carbon.jndi.osgi.services.FooService");
 
         assertTrue(namingEnumeration.hasMoreElements());
 
@@ -591,7 +594,7 @@ public class JNDITest {
         Context context = jndiContextManager.newInitialContext();
 
         NamingEnumeration<Binding> listBindings =
-                context.listBindings("osgi:servicelist/org.wso2.carbon.jndi.osgi.osgiServices.FooService");
+                context.listBindings("osgi:servicelist/org.wso2.carbon.jndi.osgi.services.FooService");
 
         assertTrue(listBindings.hasMoreElements());
 

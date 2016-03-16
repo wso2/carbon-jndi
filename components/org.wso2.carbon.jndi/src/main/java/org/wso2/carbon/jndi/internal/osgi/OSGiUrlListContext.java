@@ -23,6 +23,7 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.jndi.JNDIConstants;
 
+import java.util.Map;
 import javax.naming.Binding;
 import javax.naming.InvalidNameException;
 import javax.naming.Name;
@@ -30,7 +31,6 @@ import javax.naming.NameClassPair;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import java.util.Map;
 
 /**
  * JNDI context implementation for handling osgi:servicelist lookup.
@@ -66,8 +66,8 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
     @Override
     public NamingEnumeration<NameClassPair> list(String name) throws NamingException {
         String jndiServiceName = osgiLookupName.getJNDIServiceName();
-        ServiceReference[] serviceReferences =
-                getServiceReferences(callerContext, osgiLookupName.getInterface(), osgiLookupName.getFilter(), jndiServiceName);
+        ServiceReference[] serviceReferences = getServiceReferences(callerContext,
+                osgiLookupName.getInterface(), osgiLookupName.getFilter(), jndiServiceName);
         return new OSGiServiceNamingEnumeration(callerContext, serviceReferences);
     }
 
@@ -79,8 +79,8 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
     @Override
     public NamingEnumeration<Binding> listBindings(String name) throws NamingException {
         String jndiServiceName = osgiLookupName.getJNDIServiceName();
-        ServiceReference[] serviceReferences =
-                getServiceReferences(callerContext, osgiLookupName.getInterface(), osgiLookupName.getFilter(), jndiServiceName);
+        ServiceReference[] serviceReferences = getServiceReferences(callerContext,
+                osgiLookupName.getInterface(), osgiLookupName.getFilter(), jndiServiceName);
         return new OSGiServiceBindingsEnumeration(callerContext, serviceReferences);
     }
 
@@ -106,7 +106,8 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
                         + serviceName + ')');
             }
         } catch (InvalidSyntaxException e) {
-            e.printStackTrace();          //todo
+             //todo handle exception
+            throw new NamingException(e.getFilter());
         }
 
         return refs;
