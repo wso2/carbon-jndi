@@ -112,9 +112,9 @@ public class JNDIUtils {
     }
 
     /**
+     * @param <S>    Type of Service
      * @param clazz  The class under whose name the service was registered. Must not be null.
      * @param filter The filter expression or null for all services.
-     * @param <S>    Type of Service
      * @return a collection of {@code ServiceReference} objects of the given type of the Service S.
      */
     public static <S> Collection<ServiceReference<S>> getServiceReferences(BundleContext bundleContext,

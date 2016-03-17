@@ -25,7 +25,7 @@ import org.osgi.service.jndi.JNDIContextManager;
 import org.osgi.service.jndi.JNDIProviderAdmin;
 
 /**
- * Created by nipuni on 3/16/16. //todo
+ * A {@code ServiceFactory} which supplies instance of the JNDIProviderAdmin.
  */
 public class JNDIProviderAdminServiceFactory implements ServiceFactory<JNDIProviderAdmin> {
     @Override
