@@ -17,6 +17,8 @@
 */
 package org.wso2.carbon.jndi.internal.osgi.builder;
 
+import org.wso2.carbon.jndi.internal.osgi.factory.DefaultObjectFactory;
+
 import java.util.Hashtable;
 
 import javax.naming.NamingException;
@@ -32,6 +34,6 @@ public class DefaultObjectFactoryBuilder implements ObjectFactoryBuilder {
 
     @Override
     public ObjectFactory createObjectFactory(Object obj, Hashtable<?, ?> environment) throws NamingException {
-        return null;
+        return new DefaultObjectFactory();
     }
 }

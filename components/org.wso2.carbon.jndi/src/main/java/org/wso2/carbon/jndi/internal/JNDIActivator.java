@@ -20,10 +20,13 @@ package org.wso2.carbon.jndi.internal;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.jndi.JNDIContextManager;
+import org.osgi.service.jndi.JNDIProviderAdmin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.jndi.internal.java.JavaURLContextFactory;
 import org.wso2.carbon.jndi.internal.osgi.JNDIContextManagerServiceFactory;
+import org.wso2.carbon.jndi.internal.osgi.JNDIProviderAdminImpl;
+import org.wso2.carbon.jndi.internal.osgi.JNDIProviderAdminServiceFactory;
 import org.wso2.carbon.jndi.internal.osgi.builder.DefaultContextFactoryBuilder;
 import org.wso2.carbon.jndi.internal.osgi.builder.DefaultObjectFactoryBuilder;
 
@@ -63,6 +66,9 @@ public class JNDIActivator implements BundleActivator {
 
             logger.debug("Registering JNDIContextManager OSGi service.");
             bundleContext.registerService(JNDIContextManager.class, new JNDIContextManagerServiceFactory(), null);
+
+            logger.debug("Registering JNDIProviderAdmin OSGi service.");
+            bundleContext.registerService(JNDIProviderAdmin.class, new JNDIProviderAdminServiceFactory(), null);
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
         }

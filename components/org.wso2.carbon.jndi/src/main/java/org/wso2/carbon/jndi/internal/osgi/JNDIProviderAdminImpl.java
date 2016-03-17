@@ -18,13 +18,11 @@
 package org.wso2.carbon.jndi.internal.osgi;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.jndi.JNDIProviderAdmin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.jndi.internal.osgi.builder.DefaultObjectFactoryBuilder;
 
 import javax.naming.Context;
 import javax.naming.Name;
@@ -39,14 +37,15 @@ import javax.naming.spi.ObjectFactory;
 import javax.naming.spi.ObjectFactoryBuilder;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
+
+import static org.wso2.carbon.jndi.internal.util.JNDIUtils.getServiceReferences;
 
 /**
  * Implements JNDIProviderAdmin interface.
@@ -66,7 +65,6 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
 
     @Override
     public Object getObjectInstance(Object refInfo, Name name, Context context, Map<?, ?> environment) throws Exception {
-        Optional<Context> initialContext;
         Hashtable<Object, Object> env = new Hashtable<>();
         env.putAll(environment);
 
@@ -75,17 +73,20 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
         if (referenceObject instanceof Reference) {
             Reference reference = (Reference) referenceObject;
 
-            String userDefinedICFClassName = (String) environment.get(Context.INITIAL_CONTEXT_FACTORY);
+            String factoryClassName = reference.getFactoryClassName();
             // 3) If a factory class name is specified, use Bundle Context to search for a service registered under
             // the Reference's factory class name.
-            if (userDefinedICFClassName != null && !"".equals(userDefinedICFClassName)) {
-                //todo reference.getFactoryClassName();
-                Collection<ServiceReference<InitialContextFactory>> factorySRefCollection =
-                        getServiceReferences(InitialContextFactory.class, getServiceFilter(userDefinedICFClassName));
-                initialContext = getInitialContextFromFactory(factorySRefCollection, env);
-                if (initialContext.isPresent()) {
-                    ObjectFactory objectFactory = new DefaultObjectFactoryBuilder().createObjectFactory(reference, env);
-                    return objectFactory.getObjectInstance(reference, name, initialContext.get(), env);
+            if (factoryClassName != null && !"".equals(factoryClassName)) {
+                Collection<ServiceReference<ObjectFactory>> factorySRefCollection =
+                        getServiceReferences(bundleContext, ObjectFactory.class, null);
+                Iterator<ServiceReference<ObjectFactory>> referenceIterator = factorySRefCollection.iterator();
+                ObjectFactory factory;
+                while (referenceIterator.hasNext()) {
+                    ServiceReference serviceReference = referenceIterator.next();
+                    if (serviceReference != null) {
+                        factory = (ObjectFactory) bundleContext.getService(serviceReference);
+                        return factory.getObjectInstance(reference, name, context, env);
+                    }
                 }
                 return reference;
 
@@ -99,7 +100,7 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
                 while (refAddrEnumeration.hasMoreElements()) {
                     RefAddr refAddr = refAddrEnumeration.nextElement();
                     List<String> refUrls = new ArrayList<>();
-                    if (refAddr instanceof StringRefAddr && refAddr.getType().equals(ADDRESS_TYPE)) {
+                    if (refAddr instanceof StringRefAddr && refAddr.getType().equalsIgnoreCase(ADDRESS_TYPE)) {
                         String urlScheme = getUrlScheme((String) refAddr.getContent());
                         //todo get registered urlcontext factory and create object  , there is already a javaURLContextFactory mapped
                         //TODO register a URL context factory with property osgi.jndi.url.scheme in activator
@@ -112,15 +113,17 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
             // Iterate over the Object Factory Builder services in ranking order. Attempt to use each such service
             //to create an ObjectFactory or DirObjectFactory instance.
             Collection<ServiceReference<ObjectFactoryBuilder>> objectFactoryBuilderRef =
-                    getServiceReferences(ObjectFactoryBuilder.class, getServiceFilter(ObjectFactoryBuilder.class.getName()));
-            Optional<ObjectFactory> objectFactory = getObjectFactoryBuilder(referenceObject, objectFactoryBuilderRef, env);
-            if (objectFactory.isPresent()) {
+                    getServiceReferences(bundleContext, ObjectFactoryBuilder.class, getServiceFilter(ObjectFactoryBuilder.class.getName())); //todo cannot apply getServiceFilter
+            Optional<ObjectFactoryBuilder> objectFactoryBuilder = getObjectFactoryBuilder(referenceObject, objectFactoryBuilderRef, env);
+            if (objectFactoryBuilder.isPresent()) {
                 // 3.)If this succeeds (non null) then use
                 // this ObjectFactory or DirObjectFactory instance to recreate the object.
-                return objectFactory.get().getObjectInstance(referenceObject, name, context, env);
+                ObjectFactory objectFactory = objectFactoryBuilder.get().createObjectFactory(referenceObject, env);
+                if (objectFactory != null) {
+                    return objectFactory.getObjectInstance(referenceObject, name, context, env);
+                }
             }
             return referenceObject;
-            //todo complete impl of object factory builder impl
         }
     }
 
@@ -152,21 +155,7 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
         return null;
     }
 
-    private ServiceReference getServiceReference(Class clazz) {
-        return bundleContext.getServiceReference(clazz);
-    }
-
-    private <S> Collection<ServiceReference<S>> getServiceReferences(Class clazz, String filter) {
-        try {
-            return bundleContext.getServiceReferences(clazz, filter);
-        } catch (InvalidSyntaxException ignored) {
-            // This branch cannot be invoked. Since the filter is always correct.
-            // However I am logging the exception in case
-            logger.error("Filter syntax is invalid: " + filter, ignored);
-            return Collections.<ServiceReference<S>>emptyList();
-        }
-    }
-
+    //todo move to jndiUtils, both contextManager and this class uses this
     private String getServiceFilter(String userDefinedICFClassName) {
         return "(&" +
                 "(" + OBJECT_CLASS + "=" + userDefinedICFClassName + ")" +
@@ -191,36 +180,19 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
      * @return
      * @throws NamingException
      */
-    private Optional<Context> getInitialContextFromFactory(
-            Collection<ServiceReference<InitialContextFactory>> serviceRefCollection,
-            Hashtable<?, ?> environment) throws NamingException {
-
-        return serviceRefCollection
-                .stream()
-                .map(this::getService)
-                .flatMap(factoryOptional -> factoryOptional.map(Stream::of).orElseGet(Stream::empty))
-                .map(rethrowFunction(contextFactory -> contextFactory.getInitialContext(environment)))
-                .findFirst();
-    }
-
-    /**
-     * @param serviceRefCollection
-     * @param environment
-     * @return
-     * @throws NamingException
-     */
-    private Optional<ObjectFactory> getObjectFactoryBuilder(
+    private Optional<ObjectFactoryBuilder> getObjectFactoryBuilder(
             Object referenceObject,
             Collection<ServiceReference<ObjectFactoryBuilder>> serviceRefCollection,
             Hashtable<?, ?> environment) throws NamingException {
+        return null; //todo
 
-        return serviceRefCollection
-                .stream()
-                .sorted(new ServiceRankComparator())
-                .map(this::getService)
-                .flatMap(factoryOptional -> factoryOptional.map(Stream::of).orElseGet(Stream::empty))
-                .map(rethrowFunction(objectFactoryBuilder -> objectFactoryBuilder.createObjectFactory(referenceObject, environment)))
-                .findFirst();
+//        return serviceRefCollection
+//                .stream()
+//                .sorted(new ServiceRankComparator())
+//                .map(this::getService)
+//                .flatMap(factoryOptional -> factoryOptional.map(Stream::of).orElseGet(Stream::empty))
+//                .map(rethrowFunction(objectFactoryBuilder -> objectFactoryBuilder.createObjectFactory(referenceObject, environment)))
+//                .findFirst();
     }
 
     /**

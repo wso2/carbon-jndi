@@ -24,9 +24,12 @@ import org.ops4j.pax.exam.testng.listener.PaxExam;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.jndi.JNDIConstants;
 import org.osgi.service.jndi.JNDIContextManager;
+import org.osgi.service.jndi.JNDIProviderAdmin;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
+import org.wso2.carbon.jndi.internal.InMemoryInitialContextFactory;
 import org.wso2.carbon.jndi.osgi.builders.ABCContextFactoryBuilder;
 import org.wso2.carbon.jndi.osgi.builders.NullContextFactoryBuilder;
 import org.wso2.carbon.jndi.osgi.builders.XYZContextFactoryBuilder;
@@ -50,12 +53,14 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.inject.Inject;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
+import javax.naming.Reference;
 import javax.naming.spi.InitialContextFactory;
 import javax.naming.spi.InitialContextFactoryBuilder;
 
@@ -73,6 +78,9 @@ public class JNDITest {
 
     @Inject
     private JNDIContextManager jndiContextManager;
+
+    @Inject
+    private JNDIProviderAdmin jndiProviderAdmin;
 
     @Configuration
     public Option[] createConfiguration() {
@@ -400,4 +408,25 @@ public class JNDITest {
         nullICFBServiceRef.unregister();
         xyzICFBServiceRef.unregister();
     }
+
+    @Test(dependsOnMethods = "testCustomInitialContextFactoryBuilders")
+    public void testJNDIProvider() throws Exception {
+        Reference ref = new Reference("dummy.class.name", "dummy.factory.class.name", "");
+
+        ServiceRegistration serviceRegistration = bundleContext.registerService(
+                new String[]{InitialContextFactory.class.getName(), FooInitialContextFactory.class.getName()},
+                new FooInitialContextFactory(), null);
+
+        Map<String, String> environment = new HashMap<String, String>(1);
+        environment.put(javax.naming.Context.INITIAL_CONTEXT_FACTORY,
+                FooInitialContextFactory.class.getName());
+
+        //todo create and register a new objectFactory
+
+        Context initialContext = jndiContextManager.newInitialContext(environment);
+
+        jndiProviderAdmin.getObjectInstance(ref,null, initialContext, environment);
+        serviceRegistration.unregister();
+    }
+    //todo jndiProviderAdmin test
 }
