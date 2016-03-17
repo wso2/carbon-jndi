@@ -21,7 +21,6 @@ package org.wso2.carbon.jndi.internal.osgi;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.jndi.JNDIContextManager;
 import org.osgi.service.jndi.JNDIProviderAdmin;
 
 /**
@@ -34,7 +33,8 @@ public class JNDIProviderAdminServiceFactory implements ServiceFactory<JNDIProvi
     }
 
     @Override
-    public void ungetService(Bundle bundle, ServiceRegistration<JNDIProviderAdmin> serviceRegistration, JNDIProviderAdmin jndiProviderAdmin) {
+    public void ungetService(Bundle bundle, ServiceRegistration<JNDIProviderAdmin> serviceRegistration,
+                             JNDIProviderAdmin jndiProviderAdmin) {
 
     }
 }

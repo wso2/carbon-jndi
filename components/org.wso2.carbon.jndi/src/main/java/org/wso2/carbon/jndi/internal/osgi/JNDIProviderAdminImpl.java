@@ -25,6 +25,14 @@ import org.osgi.service.jndi.JNDIProviderAdmin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 import javax.naming.Context;
 import javax.naming.Name;
 import javax.naming.NamingException;
@@ -37,21 +45,9 @@ import javax.naming.spi.DirObjectFactory;
 import javax.naming.spi.InitialContextFactory;
 import javax.naming.spi.ObjectFactory;
 import javax.naming.spi.ObjectFactoryBuilder;
-import javax.swing.text.html.Option;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
 
-import static org.wso2.carbon.jndi.internal.util.JNDIUtils.getServiceReferences;
 import static org.wso2.carbon.jndi.internal.util.JNDIUtils.getService;
+import static org.wso2.carbon.jndi.internal.util.JNDIUtils.getServiceReferences;
 import static org.wso2.carbon.jndi.internal.util.LambdaExceptionUtils.rethrowFunction;
 
 /**
@@ -62,7 +58,7 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
 
     private BundleContext bundleContext;
     private static final String OBJECT_CLASS = "objectClass";
-    public final static String ADDRESS_TYPE = "URL";
+    private static final String ADDRESS_TYPE = "URL";
 
     public JNDIProviderAdminImpl(BundleContext bundleContext, ServiceRegistration serviceRegistration) {
         this.bundleContext = bundleContext;
@@ -84,7 +80,8 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
             // the Reference's factory class name.
             if (factoryClassName != null && !"".equals(factoryClassName)) {
                 ServiceReference[] factorySRefCollection = bundleContext.getServiceReferences(factoryClassName, null);
-                Iterator<ServiceReference> referenceIterator = (Iterator<ServiceReference>) Arrays.asList(factorySRefCollection);
+                Iterator<ServiceReference> referenceIterator =
+                        (Iterator<ServiceReference>) Arrays.asList(factorySRefCollection);
                 ObjectFactory factory;
                 while (referenceIterator.hasNext()) {
                     ServiceReference serviceReference = referenceIterator.next();
@@ -112,7 +109,8 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
                             ServiceReference serviceReference = referenceIterator.next();
                             if (serviceReference.getProperty(JNDIConstants.JNDI_URLSCHEME).equals(urlScheme)) {
                                 ObjectFactory factory = (ObjectFactory) bundleContext.getService(serviceReference);
-                                result = factory.getObjectInstance(reference, name, context, env);    //todo does the parameters be null? page 507
+                                result = factory.getObjectInstance(reference, name, context, env);
+                                 //todo does the parameters be null? page 507
                             }
                         }
                     }
@@ -139,7 +137,8 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
             // Iterate over the Object Factory Builder services in ranking order. Attempt to use each such service
             //to create an ObjectFactory or DirObjectFactory instance.
             Collection<ServiceReference<ObjectFactoryBuilder>> objectFactoryBuilderRef =
-                    getServiceReferences(bundleContext, ObjectFactoryBuilder.class, getServiceFilter(ObjectFactoryBuilder.class.getName())); //todo cannot apply getServiceFilter
+                    getServiceReferences(bundleContext, ObjectFactoryBuilder.class,
+                            getServiceFilter(ObjectFactoryBuilder.class.getName())); //todo cannot apply getServiceFilter
             Optional<ObjectFactory> factory = getObjectFactoryBuilder(referenceObject, objectFactoryBuilderRef, env);
             if (factory.isPresent()) {
                 // 3.)If this succeeds (non null) then use
@@ -179,7 +178,8 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
     }
 
     @Override
-    public Object getObjectInstance(Object refInfo, Name name, Context context, Map<?, ?> environment, Attributes attributes) throws Exception {
+    public Object getObjectInstance(Object refInfo, Name name,
+                                    Context context, Map<?, ?> environment, Attributes attributes) throws Exception {
         Hashtable<Object, Object> env = new Hashtable<>();
         env.putAll(environment);
         Object result = null;
@@ -191,7 +191,8 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
             String factoryClassName = reference.getFactoryClassName();
             if (factoryClassName != null && !"".equals(factoryClassName)) {
                 ServiceReference[] factorySRefCollection = bundleContext.getServiceReferences(factoryClassName, null);
-                Iterator<ServiceReference> referenceIterator = (Iterator<ServiceReference>) Arrays.asList(factorySRefCollection);
+                Iterator<ServiceReference> referenceIterator =
+                        (Iterator<ServiceReference>) Arrays.asList(factorySRefCollection);
                 DirObjectFactory factory;
                 while (referenceIterator.hasNext()) {
                     ServiceReference serviceReference = referenceIterator.next();
@@ -246,7 +247,8 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
             // Iterate over the Object Factory Builder services in ranking order. Attempt to use each such service
             //to create an ObjectFactory or DirObjectFactory instance.
             Collection<ServiceReference<ObjectFactoryBuilder>> objectFactoryBuilderRef =
-                    getServiceReferences(bundleContext, ObjectFactoryBuilder.class, getServiceFilter(ObjectFactoryBuilder.class.getName())); //todo cannot apply getServiceFilter
+                    getServiceReferences(bundleContext, ObjectFactoryBuilder.class,
+                            getServiceFilter(ObjectFactoryBuilder.class.getName())); //todo cannot apply getServiceFilter
             Optional<DirObjectFactory> factory = getDirObjectFactoryBuilder(referenceObject, objectFactoryBuilderRef, env);
             if (factory.isPresent()) {
                 // 3.)If this succeeds (non null) then use
