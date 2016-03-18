@@ -96,7 +96,7 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
 
     private ServiceReference[] getServiceReferences(BundleContext ctx, String interfaceName,
                                                     String filter, String serviceName) throws NamingException {
-        ServiceReference[] refs = null;
+        ServiceReference[] refs;
 
         try {
             refs = ctx.getServiceReferences(interfaceName, filter);

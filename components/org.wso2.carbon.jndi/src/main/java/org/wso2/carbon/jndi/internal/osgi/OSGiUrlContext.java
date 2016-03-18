@@ -45,7 +45,6 @@ public class OSGiUrlContext extends AbstractOSGiUrlContext {
         OSGiName osGiName = new OSGiName(name);
         String scheme = name.get(0);
         String interfaceName;
-        String filter = null;
         //The owning bundle is the bundle that requested the initial Context from the JNDI Context Manager
         //service or received its Context through the InitialContext class
         if (osGiName.hasInterface()) {
