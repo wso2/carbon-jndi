@@ -146,12 +146,12 @@ public class DefaultContextFactory implements InitialContextFactory {
      * <p>
      * Walk the call stack until the invoker is found. The invoker can be the caller of the InitialContext class
      * constructor or the NamingManager or DirectoryManager getObjectInstance methods.
-     * • Get the class loader of the caller and see if it, or an ancestor, implements the
+     * Get the class loader of the caller and see if it, or an ancestor, implements the
      * BundleReference interface.
-     * • If a Class Loader implementing the BundleReference interface is found call the getBundle method to
+     * If a Class Loader implementing the BundleReference interface is found call the getBundle method to
      * get the clients Bundle; then call the getBundleContext method on the Bundle to get the
      * clients Bundle Context.
-     * • If the Bundle Context has been found stop, else continue with the next stack frame.
+     * If the Bundle Context has been found stop, else continue with the next stack frame.
      *
      * @return an {@code Optional} describing the caller's bundle context retrieved from the current class context.
      */
