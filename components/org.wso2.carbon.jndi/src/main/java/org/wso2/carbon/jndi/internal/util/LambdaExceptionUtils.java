@@ -105,7 +105,13 @@ public final class LambdaExceptionUtils {
     }
 
     /**
-     * .map(rethrowFunction(name -> Class.forName(name))) or .map(rethrowFunction(Class::forName))
+     * .map(rethrowFunction(name -- Class.forName(name))) or .map(rethrowFunction(Class::forName))
+     * @param <T>      Any Object.
+     * @param <R>      Any Object
+     * @param <E>      Any Exception.
+     * @param function Function to apply for given arguments.
+     *
+     * @return     Any Object that result from the function passed.
      */
     public static <T, R, E extends Exception> Function<T, R> rethrowFunction(
             FunctionWithExceptions<T, R, E> function) {
@@ -120,7 +126,12 @@ public final class LambdaExceptionUtils {
     }
 
     /**
-     * rethrowSupplier(() -> new StringJoiner(new String(new byte[]{77, 97, 114, 107}, "UTF-8"))),
+     * rethrowSupplier(() -- new StringJoiner(new String(new byte[]{77, 97, 114, 107}, "UTF-8"))),
+     * @param <T>      Any Object.
+     * @param <E>      Any Exception.
+     * @param function Function to apply for given arguments.
+     *
+     * @return Supplier of the results.
      */
     public static <T, E extends Exception> Supplier<T> rethrowSupplier(SupplierWithExceptions<T, E> function) {
         return () -> {
@@ -134,7 +145,8 @@ public final class LambdaExceptionUtils {
     }
 
     /**
-     * uncheck(() -> Class.forName("xxx"));
+     * uncheck(() -- Class.forName("xxx"));
+     * @param t RunnableException.
      */
     public static void uncheck(RunnableWithExceptions t) {
         try {
@@ -145,7 +157,12 @@ public final class LambdaExceptionUtils {
     }
 
     /**
-     * uncheck(() -> Class.forName("xxx"));
+     * uncheck(() -- Class.forName("xxx"));
+     * @param <R>    Any Object.
+     * @param <E>    Any Exception.
+     * @param supplier supplier interface which can throw exceptions.
+     *
+     * @return R     Any Object.
      */
     public static <R, E extends Exception> R uncheck(SupplierWithExceptions<R, E> supplier) {
         try {
@@ -158,6 +175,13 @@ public final class LambdaExceptionUtils {
 
     /**
      * uncheck(Class::forName, "xxx");
+     * @param <T>     Any Object.
+     * @param <R>     Any Object.
+     * @param <E>     Any Exception.
+     * @param function Any function which can throw an exception.
+     * @param t       Any Object.
+     *
+     * @return R      Any Object.
      */
     public static <T, R, E extends Exception> R uncheck(FunctionWithExceptions<T, R, E> function, T t) {
         try {

@@ -81,9 +81,9 @@ public class NamingContext implements Context {
     /**
      * Builds a jndi context using the given environment.
      *
-     * @param environment
-     * @param name
-     * @throws NamingException
+     * @param environment       Environment properties for the Context.
+     * @param name              Name associated with the jndi context.
+     * @throws NamingException  If no context can be created for the given environment.
      */
     public NamingContext(Hashtable<String, Object> environment, String name) throws NamingException {
         this(environment, name, new HashMap<>());
@@ -92,10 +92,10 @@ public class NamingContext implements Context {
     /**
      * Builds a jndi context using the given environment.
      *
-     * @param environment
-     * @param name
-     * @param bindings
-     * @throws NamingException
+     * @param environment       Environment properties for the Context.
+     * @param name              Name associated with the jndi context.
+     * @param bindings          Bindings in this Context.
+     * @throws NamingException  If no context can be created for the given environment.
      */
     public NamingContext(Hashtable<String, Object> environment,
                          String name,

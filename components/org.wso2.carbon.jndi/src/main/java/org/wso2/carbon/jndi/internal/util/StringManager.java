@@ -27,17 +27,14 @@ import java.util.ResourceBundle;
  * the bother of handling ResourceBundles and takes care of the
  * common cases of message formating which otherwise require the
  * creation of Object arrays and such.
- * <p>
  * <p>The StringManager operates on a package basis. One StringManager
  * per package can be created and accessed via the getManager method
  * call.
- * <p>
  * <p>The StringManager will look for a ResourceBundle named by
  * the package name given plus the suffix of "LocalStrings". In
  * practice, this means that the localized information will be contained
  * in a LocalStrings.properties file located in the package
  * directory of the classpath.
- * <p>
  * <p>Please see the documentation for java.util.ResourceBundle for
  * more information.
  *
@@ -129,8 +126,10 @@ public class StringManager {
      * Get a string from the underlying resource bundle and format
      * it with the given set of arguments.
      *
-     * @param key
-     * @param args
+     * @param key    mapped key to a string value.
+     * @param args   additional details about the expression.
+     *
+     * @return String formatted with the given arguments
      */
     public String getString(final String key, final Object... args) {
         String value = getString(key);
@@ -156,6 +155,8 @@ public class StringManager {
      * StringManager will be created and returned.
      *
      * @param packageName The package name
+     *
+     * @return StringManager relate to packageName
      */
     public static final synchronized StringManager getManager(String packageName) {
         StringManager mgr = managers.get(packageName);
