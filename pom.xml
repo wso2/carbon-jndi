@@ -198,7 +198,7 @@
         <carbon.jndi.version>1.0.0-SNAPSHOT</carbon.jndi.version>
         <carbon.jndi.pkg.export.version>1.0.0</carbon.jndi.pkg.export.version>
 
-        <carbon.kernel.version>5.1.0-SNAPSHOT</carbon.kernel.version>
+        <carbon.kernel.version>5.1.0-m1</carbon.kernel.version>
         <carbon.feature.plugin.version>2.0.0</carbon.feature.plugin.version>
 
         <!-- OSGi API dependency versions -->
