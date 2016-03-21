@@ -35,6 +35,23 @@ public class OSGiUrlContextFactory implements ObjectFactory {
         this.callerContext = callerContext;
     }
 
+    /**
+     * Create a new Context instance.
+     *
+     * @param obj         The possibly null object containing location or reference
+     *                    information that can be used in creating an object.
+     * @param name        The name of this object relative to <code>nameCtx</code>,
+     *                    or null if no name is specified.
+     * @param nameCtx     The context relative to which the <code>name</code>
+     *                    parameter is specified, or null if <code>name</code> is
+     *                    relative to the default initial context.
+     * @param environment The possibly null environment that is used in
+     *                    creating the object.
+     * @return The object created; null if an object cannot be created.
+     * @throws Exception if this object factory encountered an exception
+     *                   while attempting to create an object, and no other object factories are
+     *                   to be tried.
+     */
     @Override
     public Object getObjectInstance(Object obj,
                                     Name name,

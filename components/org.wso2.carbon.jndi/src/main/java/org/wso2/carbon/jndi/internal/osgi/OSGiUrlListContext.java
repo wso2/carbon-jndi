@@ -38,17 +38,37 @@ import javax.naming.NamingException;
 public class OSGiUrlListContext extends AbstractOSGiUrlContext {
     private OSGiName osgiLookupName;
 
+    /**
+     * Set the owning bundle context and environment variables.
+     *
+     * @param callerContext caller bundleContext
+     * @param environment   environment information to create the context
+     */
     public OSGiUrlListContext(BundleContext callerContext, Map<String, Object> environment, Name name)
             throws InvalidNameException {
         super(callerContext, environment, name);
         osgiLookupName = new OSGiName(name);
     }
 
+    /**
+     * lookup services in the service registry.
+     *
+     * @param name lookup name for OSGi scheme.
+     * @return service or serviceList context based on the query.
+     * @throws NamingException if a naming exception is encountered.
+     */
     @Override
     public Object lookup(Name name) throws NamingException {
         return lookup(name.toString());
     }
 
+    /**
+     * lookup services in the service registry.
+     *
+     * @param name lookup name for OSGi scheme.
+     * @return service or serviceList context based on the query.
+     * @throws NamingException if a naming exception is encountered.
+     */
     @Override
     public Object lookup(String name) throws NamingException {
         Object result = findService(callerContext, osgiLookupName, env);
@@ -58,11 +78,27 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
         return result;
     }
 
+    /**
+     * provides Naming Enumeration object which provides a NameClassPair object.
+     * useful in cases where a client wishes to iterate over the available services without actually getting them.
+     *
+     * @param name name of the context to list
+     * @return Naming Enumeration object which provides a NameClassPair
+     * @throws NamingException if a jndi exception is encountered
+     */
     @Override
     public NamingEnumeration<NameClassPair> list(Name name) throws NamingException {
         return list(name.toString());
     }
 
+    /**
+     * provides Naming Enumeration object which provides a NameClassPair object.
+     * useful in cases where a client wishes to iterate over the available services without actually getting them.
+     *
+     * @param name name of the context to list
+     * @return Naming Enumeration object which provides a NameClassPair
+     * @throws NamingException if a jndi exception is encountered
+     */
     @Override
     public NamingEnumeration<NameClassPair> list(String name) throws NamingException {
         String jndiServiceName = osgiLookupName.getJNDIServiceName();
@@ -71,11 +107,25 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
         return new OSGiServiceNamingEnumeration(callerContext, serviceReferences);
     }
 
+    /**
+     * produce a NamingEnumeration object that provides Binding objects.
+     *
+     * @param name Composite Name to create the OSGi Name
+     * @return NamingEnumeration object that provides Binding objects
+     * @throws NamingException if jndi exception encountered
+     */
     @Override
     public NamingEnumeration<Binding> listBindings(Name name) throws NamingException {
         return listBindings(name.toString());
     }
 
+    /**
+     * produce a NamingEnumeration object that provides Binding objects.
+     *
+     * @param name Composite Name to create the OSGi Name
+     * @return NamingEnumeration object that provides Binding objects
+     * @throws NamingException if jndi exception encountered
+     */
     @Override
     public NamingEnumeration<Binding> listBindings(String name) throws NamingException {
         String jndiServiceName = osgiLookupName.getJNDIServiceName();
@@ -106,7 +156,7 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
                         + serviceName + ')');
             }
         } catch (InvalidSyntaxException e) {
-             //todo handle exception
+            //todo handle exception
             throw new NamingException(e.getFilter());
         }
 

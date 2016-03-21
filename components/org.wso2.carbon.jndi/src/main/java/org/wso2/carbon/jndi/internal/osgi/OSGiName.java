@@ -28,6 +28,11 @@ import javax.naming.Name;
  */
 public class OSGiName extends CompositeName {
 
+    /**
+     * The serial version UID
+     */
+    private static final long serialVersionUID = 7079733784681646165L;
+
     public OSGiName(String name) throws InvalidNameException {
         super(name);
     }

@@ -23,8 +23,6 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.jndi.JNDIConstants;
 import org.wso2.carbon.jndi.internal.util.NameParserImpl;
 
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
@@ -36,7 +34,7 @@ import javax.naming.OperationNotSupportedException;
 
 /**
  * Abstract class for common method implementations for
- * OSGiUrlContext.
+ * OSGiUrlContext and OSGIUrlListContext.
  */
 public abstract class AbstractOSGiUrlContext implements Context {
 
@@ -64,20 +62,20 @@ public abstract class AbstractOSGiUrlContext implements Context {
         env = environment;
     }
 
-    //todo move to a util class?
     protected Object findService(BundleContext ctx, OSGiName lookupName,
                                  Map<String, Object> env) throws NamingException {
         String interfaceName = lookupName.getInterface();
         String filter = lookupName.getFilter();
         String serviceName = lookupName.getJNDIServiceName();
 
+        //find the service with the given interface and filter.
         Object result;
         result = getService(ctx, interfaceName, filter);
 
+        //if result is null, the query might have used JNDI service name for the lookup.
         if (result == null) {
-            interfaceName = null;
             filter = "(" + JNDIConstants.JNDI_SERVICENAME + "=" + serviceName + ')';
-            result = getService(ctx, interfaceName, filter);
+            result = getService(ctx, null, filter);  //parse the interface=null
         }
 
         return result;
@@ -90,13 +88,6 @@ public abstract class AbstractOSGiUrlContext implements Context {
             ServiceReference[] serviceReferences = ctx.getServiceReferences(interfaceName, filter);
 
             if (serviceReferences != null) {
-                // natural order is the exact opposite of the order we desire.
-                Arrays.sort(serviceReferences, new Comparator<ServiceReference>() {
-                    public int compare(ServiceReference reference1, ServiceReference reference2) {
-                        return reference2.compareTo(reference1);
-                    }
-                });
-
                 for (ServiceReference reference : serviceReferences) {
                     Object ctxService = ctx.getService(reference);
 
@@ -230,4 +221,5 @@ public abstract class AbstractOSGiUrlContext implements Context {
     public String composeName(String name, String prefix) throws NamingException {
         return prefix + "/" + name;
     }
+
 }

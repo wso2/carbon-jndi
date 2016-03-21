@@ -33,10 +33,23 @@ import javax.naming.NamingException;
  */
 public class OSGiUrlContext extends AbstractOSGiUrlContext {
 
+    /**
+     * Set the owning bundle context and environment variables.
+     *
+     * @param callerContext caller bundleContext
+     * @param environment   environment information to create the context
+     */
     public OSGiUrlContext(BundleContext callerContext, Hashtable<?, ?> environment) {
         super(callerContext, environment);
     }
 
+    /**
+     * lookup services in the service registry.
+     *
+     * @param name lookup name for OSGi scheme.
+     * @return service or serviceList context based on the query.
+     * @throws NamingException if a naming exception is encountered.
+     */
     @Override
     public Object lookup(Name name) throws NamingException {
 
@@ -92,26 +105,63 @@ public class OSGiUrlContext extends AbstractOSGiUrlContext {
         return result;
     }
 
+    /**
+     * Retrieves the named object.
+     *
+     * @param name the name of the object to look up
+     * @return the object bound to <tt>name</tt>
+     * @throws NamingException if a jndi exception is encountered
+     */
     @Override
     public Object lookup(String name) throws NamingException {
         return lookup(parser.parse(name));
     }
 
+    /**
+     * provides Naming Enumeration object which provides a NameClassPair object.
+     * useful in cases where a client wishes to iterate over the available services without actually getting them.
+     *
+     * @param name name of the context to list
+     * @return Naming Enumeration object which provides a NameClassPair
+     * @throws NamingException if a jndi exception is encountered
+     */
     @Override
     public NamingEnumeration<NameClassPair> list(Name name) throws NamingException {
         return new OSGiUrlListContext(callerContext, env, name).list("");
     }
 
+    /**
+     * provides Naming Enumeration object which provides a NameClassPair object.
+     * useful in cases where a client wishes to iterate over the available services without actually getting them.
+     *
+     * @param name name of the context to list
+     * @return Naming Enumeration object which provides a NameClassPair
+     * @throws NamingException if a jndi exception is encountered
+     */
     @Override
     public NamingEnumeration<NameClassPair> list(String name) throws NamingException {
         return list(parser.parse(name));
     }
 
+    /**
+     * produce a NamingEnumeration object that provides Binding objects.
+     *
+     * @param name Composite Name to create the OSGi Name
+     * @return NamingEnumeration object that provides Binding objects
+     * @throws NamingException if jndi exception encountered
+     */
     @Override
     public NamingEnumeration<Binding> listBindings(Name name) throws NamingException {
         return new OSGiUrlListContext(callerContext, env, name).listBindings("");
     }
 
+    /**
+     * produce a NamingEnumeration object that provides Binding objects.
+     *
+     * @param name Composite Name to create the OSGi Name
+     * @return NamingEnumeration object that provides Binding objects
+     * @throws NamingException if jndi exception encountered
+     */
     @Override
     public NamingEnumeration<Binding> listBindings(String name) throws NamingException {
         return listBindings(parser.parse(name));

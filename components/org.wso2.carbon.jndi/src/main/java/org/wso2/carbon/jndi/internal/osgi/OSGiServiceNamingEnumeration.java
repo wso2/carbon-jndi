@@ -34,34 +34,45 @@ import javax.naming.NamingException;
  */
 public class OSGiServiceNamingEnumeration implements NamingEnumeration<NameClassPair> {
 
+    /**
+     * Caller bundle context.
+     */
     private BundleContext bundleContext;
-    private ServiceReference[] serviceReferences;
+    /**
+     * Underlying enumeration.
+     */
     protected Iterator<NameClassPair> iterator;
-    protected List<NameClassPair> nameClassPairList;
 
     public OSGiServiceNamingEnumeration(BundleContext bundleContext, ServiceReference[] refs) {
-        this.serviceReferences = refs;
         this.bundleContext = bundleContext;
-        nameClassPairList = buildNameClassPair();
+        List<NameClassPair> nameClassPairList = buildNameClassPair(refs);
         iterator = nameClassPairList.iterator();
     }
 
-    private List<NameClassPair> buildNameClassPair() {
-        nameClassPairList = new ArrayList<>();
+    private List<NameClassPair> buildNameClassPair(ServiceReference[] serviceReferences) {
+        List<NameClassPair> nameClassPairList = new ArrayList<>();
         for (ServiceReference serviceReference : serviceReferences) {
             String className = bundleContext.getService(serviceReference).getClass().getName();
+            //name are a string with the service.id number
             String name = String.valueOf(serviceReference.getProperty(Constants.SERVICE_ID));
+            //NameClassPair object will include the name and class of each service in the Context
             NameClassPair nameClassPair = new NameClassPair(name, className);
             nameClassPairList.add(nameClassPair);
         }
         return nameClassPairList;
     }
 
+    /**
+     * Retrieves the next element in the enumeration.
+     */
     @Override
     public NameClassPair next() throws NamingException {
         return nextElement();
     }
 
+    /**
+     * Determines whether there are any more elements in the enumeration.
+     */
     @Override
     public boolean hasMore() throws NamingException {
         return iterator.hasNext();
@@ -72,11 +83,18 @@ public class OSGiServiceNamingEnumeration implements NamingEnumeration<NameClass
 
     }
 
+    /**
+     * Tests if this enumeration contains more elements.
+     */
     @Override
     public boolean hasMoreElements() {
         return iterator.hasNext();
     }
 
+    /**
+     * Returns the next element of this enumeration if this enumeration
+     * object has at least one more element to provide.
+     */
     @Override
     public NameClassPair nextElement() {
         return iterator.next();
