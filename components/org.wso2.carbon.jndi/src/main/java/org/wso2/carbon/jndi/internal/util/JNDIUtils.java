@@ -66,6 +66,7 @@ public class JNDIUtils {
     }
 
     /**
+     * @param bundleContext        caller BundleContext.
      * @param serviceRefCollection Collection of {@code ServiceReference} objects of InitialContextFactoryBuilders.
      * @param environment          The possibly null environment
      *                             specifying information to be used in the creation
@@ -89,6 +90,7 @@ public class JNDIUtils {
     }
 
     /**
+     * @param bundleContext        caller BundleContext.
      * @param serviceRefCollection collection of {@code ServiceReference} objects of InitialContextFactory.
      * @param environment          The possibly null environment
      *                             specifying information to be used in the creation
@@ -112,9 +114,10 @@ public class JNDIUtils {
     }
 
     /**
-     * @param <S>    Type of Service
+     * @param bundleContext  caller BundleContext.
      * @param clazz  The class under whose name the service was registered. Must not be null.
      * @param filter The filter expression or null for all services.
+     * @param <S>    Type of Service
      * @return a collection of {@code ServiceReference} objects of the given type of the Service S.
      */
     public static <S> Collection<ServiceReference<S>> getServiceReferences(BundleContext bundleContext,
@@ -131,6 +134,7 @@ public class JNDIUtils {
     }
 
     /**
+     * @param bundleContext    caller BundleContext.
      * @param serviceReference A reference to the service of type S.
      * @param <S>              Type of Service.
      * @return an {@code Optional} describing the service of type S.

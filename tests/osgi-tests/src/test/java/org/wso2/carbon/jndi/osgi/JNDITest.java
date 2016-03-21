@@ -409,24 +409,24 @@ public class JNDITest {
         xyzICFBServiceRef.unregister();
     }
 
-    @Test(dependsOnMethods = "testCustomInitialContextFactoryBuilders")
-    public void testJNDIProvider() throws Exception {
-        Reference ref = new Reference("dummy.class.name", "dummy.factory.class.name", "");
-
-        ServiceRegistration serviceRegistration = bundleContext.registerService(
-                new String[]{InitialContextFactory.class.getName(), FooInitialContextFactory.class.getName()},
-                new FooInitialContextFactory(), null);
-
-        Map<String, String> environment = new HashMap<String, String>(1);
-        environment.put(javax.naming.Context.INITIAL_CONTEXT_FACTORY,
-                FooInitialContextFactory.class.getName());
-
-        //todo create and register a new objectFactory
-
-        Context initialContext = jndiContextManager.newInitialContext(environment);
-
-        jndiProviderAdmin.getObjectInstance(ref,null, initialContext, environment);
-        serviceRegistration.unregister();
-    }
+//    @Test(dependsOnMethods = "testCustomInitialContextFactoryBuilders")
+//    public void testJNDIProvider() throws Exception {
+//        Reference ref = new Reference("dummy.class.name", "dummy.factory.class.name", "");
+//
+//        ServiceRegistration serviceRegistration = bundleContext.registerService(
+//                new String[]{InitialContextFactory.class.getName(), FooInitialContextFactory.class.getName()},
+//                new FooInitialContextFactory(), null);
+//
+//        Map<String, String> environment = new HashMap<String, String>(1);
+//        environment.put(javax.naming.Context.INITIAL_CONTEXT_FACTORY,
+//                FooInitialContextFactory.class.getName());
+//
+//        //todo create and register a new objectFactory
+//
+//        Context initialContext = jndiContextManager.newInitialContext(environment);
+//
+//        jndiProviderAdmin.getObjectInstance(ref,null, initialContext, environment);
+//        serviceRegistration.unregister();
+//    }
     //todo jndiProviderAdmin test
 }
