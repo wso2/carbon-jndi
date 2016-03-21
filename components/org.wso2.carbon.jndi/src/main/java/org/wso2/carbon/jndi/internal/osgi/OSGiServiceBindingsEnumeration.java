@@ -60,6 +60,7 @@ public class OSGiServiceBindingsEnumeration implements NamingEnumeration<Binding
             Binding binding = new Binding(name, className, service);
             bindings.add(binding);
         }
+
         return bindings;
     }
 

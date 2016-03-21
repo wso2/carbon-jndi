@@ -38,9 +38,7 @@ import javax.naming.spi.ObjectFactory;
 
 /**
  * An implementation of {@code BundleActivator} which initializes Carbon JNDI implementations.
- * <p/>
  * Sets the default InitialContextFactoryBuilder and ObjectFactoryBuilder.
- * <p/>
  * Registers default InitialContextFactory implementations as OSGi services.
  */
 public class JNDIActivator implements BundleActivator {

@@ -41,8 +41,10 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
     /**
      * Set the owning bundle context and environment variables.
      *
-     * @param callerContext caller bundleContext
-     * @param environment   environment information to create the context
+     * @param callerContext   caller bundleContext.
+     * @param environment     environment information to create the context.
+     * @param name            name for the context.
+     * @throws InvalidNameException if creating OSGIName fails.
      */
     public OSGiUrlListContext(BundleContext callerContext, Map<String, Object> environment, Name name)
             throws InvalidNameException {
@@ -156,8 +158,7 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
                         + serviceName + ')');
             }
         } catch (InvalidSyntaxException e) {
-            //todo handle exception
-            throw new NamingException(e.getFilter());
+            throw new NamingException("Error loading services from service registry with filter: " + e.getFilter());
         }
 
         return refs;

@@ -29,7 +29,7 @@ import javax.naming.NamingException;
 
 /**
  * JNDI context implementation for handling osgi:service lookup.
- * Sample query osgi:service/<interface>/<filter>
+ * Sample query osgi:service/interface/filter
  */
 public class OSGiUrlContext extends AbstractOSGiUrlContext {
 
