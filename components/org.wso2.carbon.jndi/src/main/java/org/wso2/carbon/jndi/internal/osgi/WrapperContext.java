@@ -633,6 +633,7 @@ public class WrapperContext implements Context {
 
     /**
      * Strips the URL header.
+     * @param name to parse via parser.
      *
      * @return the parsed name
      * @throws NamingException if there is no "java:" header or if no
@@ -658,6 +659,7 @@ public class WrapperContext implements Context {
 
     /**
      * Strips the URL header.
+     * @param  name to parse via parser.
      *
      * @return the parsed name
      * @throws NamingException if there is no "java:" header or if no
