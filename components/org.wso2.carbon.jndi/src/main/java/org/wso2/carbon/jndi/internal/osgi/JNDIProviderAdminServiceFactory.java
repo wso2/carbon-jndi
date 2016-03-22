@@ -27,6 +27,7 @@ import org.osgi.service.jndi.JNDIProviderAdmin;
  * A {@code ServiceFactory} which supplies instance of the JNDIProviderAdmin.
  */
 public class JNDIProviderAdminServiceFactory implements ServiceFactory<JNDIProviderAdmin> {
+
     @Override
     public JNDIProviderAdmin getService(Bundle bundle, ServiceRegistration<JNDIProviderAdmin> serviceRegistration) {
         return new JNDIProviderAdminImpl(bundle.getBundleContext(), serviceRegistration);
