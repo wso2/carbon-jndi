@@ -602,6 +602,7 @@ public class JNDITest {
 
         assertNotNull(binding.getObject(),
                 "No Binding object returned fo service :" + FooService.class);
+        listBindings.close();
         fooServiceRegistration.unregister();
     }
 

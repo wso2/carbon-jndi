@@ -136,16 +136,6 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
         return new OSGiServiceBindingsEnumeration(callerContext, serviceReferences);
     }
 
-    @Override
-    public void close() throws NamingException {
-
-    }
-
-    @Override
-    public String getNameInNamespace() throws NamingException {
-        return null;
-    }
-
     private ServiceReference[] getServiceReferences(BundleContext ctx, String interfaceName,
                                                     String filter, String serviceName) throws NamingException {
         ServiceReference[] refs;

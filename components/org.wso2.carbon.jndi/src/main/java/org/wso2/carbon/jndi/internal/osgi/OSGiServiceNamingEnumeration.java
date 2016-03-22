@@ -49,15 +49,18 @@ public class OSGiServiceNamingEnumeration implements NamingEnumeration<NameClass
         iterator = nameClassPairList.iterator();
     }
 
-    private List<NameClassPair> buildNameClassPair(ServiceReference[] serviceReferences) {
+    private List<NameClassPair> buildNameClassPair(ServiceReference[] serviceReferences) {   //todo java8
         List<NameClassPair> nameClassPairList = new ArrayList<>();
         for (ServiceReference serviceReference : serviceReferences) {
-            String className = bundleContext.getService(serviceReference).getClass().getName();
-            //name are a string with the service.id number
-            String name = String.valueOf(serviceReference.getProperty(Constants.SERVICE_ID));
-            //NameClassPair object will include the name and class of each service in the Context
-            NameClassPair nameClassPair = new NameClassPair(name, className);
-            nameClassPairList.add(nameClassPair);
+            Object service = bundleContext.getService(serviceReference);
+            if (service != null) {
+                String className = service.getClass().getName();
+                //name are a string with the service.id number
+                String name = String.valueOf(serviceReference.getProperty(Constants.SERVICE_ID));
+                //NameClassPair object will include the name and class of each service in the Context
+                NameClassPair nameClassPair = new NameClassPair(name, className);
+                nameClassPairList.add(nameClassPair);
+            }
         }
         return nameClassPairList;
     }

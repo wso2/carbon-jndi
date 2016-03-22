@@ -167,8 +167,4 @@ public class OSGiUrlContext extends AbstractOSGiUrlContext {
         return listBindings(parser.parse(name));
     }
 
-    @Override
-    public void close() throws NamingException {
-
-    }
 }

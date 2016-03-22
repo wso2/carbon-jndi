@@ -49,16 +49,18 @@ public class OSGiServiceBindingsEnumeration implements NamingEnumeration<Binding
         iterator = bindings.iterator();
     }
 
-    private List<Binding> buildBindings(ServiceReference[] serviceReferences) {
+    private List<Binding> buildBindings(ServiceReference[] serviceReferences) {  //todo java8
         List<Binding> bindings = new ArrayList<>();
         for (ServiceReference serviceReference : serviceReferences) {
             Object service = bundleContext.getService(serviceReference);
-            String className = service.getClass().getName();
-            //name are a string with the service.id number
-            String name = String.valueOf(serviceReference.getProperty(Constants.SERVICE_ID));
-            //A Binding object contains the name, class of the service, and the service object.
-            Binding binding = new Binding(name, className, service);
-            bindings.add(binding);
+            if (service != null) {
+                String className = service.getClass().getName();
+                //name are a string with the service.id number
+                String name = String.valueOf(serviceReference.getProperty(Constants.SERVICE_ID));
+                //A Binding object contains the name, class of the service, and the service object.
+                Binding binding = new Binding(name, className, service);
+                bindings.add(binding);
+            }
         }
 
         return bindings;
@@ -82,7 +84,7 @@ public class OSGiServiceBindingsEnumeration implements NamingEnumeration<Binding
 
     @Override
     public void close() throws NamingException {
-
+        //todo
     }
 
     /**
