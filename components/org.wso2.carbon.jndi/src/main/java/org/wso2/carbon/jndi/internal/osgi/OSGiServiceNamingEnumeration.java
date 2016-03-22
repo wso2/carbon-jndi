@@ -25,6 +25,8 @@ import org.osgi.framework.ServiceReference;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Predicate;
+import javax.naming.Binding;
 import javax.naming.NameClassPair;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -43,27 +45,27 @@ public class OSGiServiceNamingEnumeration implements NamingEnumeration<NameClass
      */
     protected Iterator<NameClassPair> iterator;
 
-    public OSGiServiceNamingEnumeration(BundleContext bundleContext, ServiceReference[] refs) {
+    public OSGiServiceNamingEnumeration(BundleContext bundleContext, List<ServiceReference> refs) {
         this.bundleContext = bundleContext;
         List<NameClassPair> nameClassPairList = buildNameClassPair(refs);
         iterator = nameClassPairList.iterator();
     }
 
-    private List<NameClassPair> buildNameClassPair(ServiceReference[] serviceReferences) {   //todo java8
+    private List<NameClassPair> buildNameClassPair(List<ServiceReference> serviceReferencesList) {
         List<NameClassPair> nameClassPairList = new ArrayList<>();
-        for (ServiceReference serviceReference : serviceReferences) {
-            Object service = bundleContext.getService(serviceReference);
-            if (service != null) {
-                String className = service.getClass().getName();
-                //name are a string with the service.id number
-                String name = String.valueOf(serviceReference.getProperty(Constants.SERVICE_ID));
-                //NameClassPair object will include the name and class of each service in the Context
-                NameClassPair nameClassPair = new NameClassPair(name, className);
-                nameClassPairList.add(nameClassPair);
-            }
-        }
+        //name are a string with the service.id number
+        //A Binding object contains the name, class of the service, and the service object.
+        serviceReferencesList.stream()
+                .filter(filterNotNullReferences)
+                .forEach(serviceReference -> nameClassPairList.add(new Binding(
+                        String.valueOf(serviceReference.getProperty(Constants.SERVICE_ID)),
+                        bundleContext.getService(serviceReference).getClass().getName(),
+                        bundleContext.getService(serviceReference))));
         return nameClassPairList;
     }
+
+    private Predicate<ServiceReference> filterNotNullReferences =
+            (ServiceReference reference) -> (bundleContext.getService(reference) != null);
 
     /**
      * Retrieves the next element in the enumeration.
@@ -83,7 +85,6 @@ public class OSGiServiceNamingEnumeration implements NamingEnumeration<NameClass
 
     @Override
     public void close() throws NamingException {
-
     }
 
     /**

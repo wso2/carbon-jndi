@@ -589,6 +589,10 @@ public class JNDITest {
         ServiceRegistration<FooService> fooServiceRegistration = bundleContext.registerService(
                 FooService.class, fooService, null);
 
+        FooService fooService2 = new FooServiceImpl2();
+        ServiceRegistration<FooService> fooServiceRegistration2 = bundleContext.registerService(
+                FooService.class, fooService2, null);
+
         Context context = jndiContextManager.newInitialContext();
 
         NamingEnumeration<Binding> listBindings =
@@ -602,8 +606,11 @@ public class JNDITest {
 
         assertNotNull(binding.getObject(),
                 "No Binding object returned fo service :" + FooService.class);
+        assertTrue(listBindings.hasMoreElements());   //we registered two services.
+
         listBindings.close();
         fooServiceRegistration.unregister();
+        fooServiceRegistration2.unregister();
     }
 
     /**

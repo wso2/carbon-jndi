@@ -23,6 +23,8 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.jndi.JNDIConstants;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import javax.naming.Binding;
 import javax.naming.InvalidNameException;
@@ -41,9 +43,9 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
     /**
      * Set the owning bundle context and environment variables.
      *
-     * @param callerContext   caller bundleContext.
-     * @param environment     environment information to create the context.
-     * @param name            name for the context.
+     * @param callerContext caller bundleContext.
+     * @param environment   environment information to create the context.
+     * @param name          name for the context.
      * @throws InvalidNameException if creating OSGIName fails.
      */
     public OSGiUrlListContext(BundleContext callerContext, Map<String, Object> environment, Name name)
@@ -104,7 +106,7 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
     @Override
     public NamingEnumeration<NameClassPair> list(String name) throws NamingException {
         String jndiServiceName = osgiLookupName.getJNDIServiceName();
-        ServiceReference[] serviceReferences = getServiceReferences(callerContext,
+        List<ServiceReference> serviceReferences = getServiceReferences(callerContext,
                 osgiLookupName.getInterface(), osgiLookupName.getFilter(), jndiServiceName);
         return new OSGiServiceNamingEnumeration(callerContext, serviceReferences);
     }
@@ -131,13 +133,13 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
     @Override
     public NamingEnumeration<Binding> listBindings(String name) throws NamingException {
         String jndiServiceName = osgiLookupName.getJNDIServiceName();
-        ServiceReference[] serviceReferences = getServiceReferences(callerContext,
+        List<ServiceReference> serviceReferences = getServiceReferences(callerContext,
                 osgiLookupName.getInterface(), osgiLookupName.getFilter(), jndiServiceName);
         return new OSGiServiceBindingsEnumeration(callerContext, serviceReferences);
     }
 
-    private ServiceReference[] getServiceReferences(BundleContext ctx, String interfaceName,
-                                                    String filter, String serviceName) throws NamingException {
+    private List<ServiceReference> getServiceReferences(BundleContext ctx, String interfaceName,
+                                                        String filter, String serviceName) throws NamingException {
         ServiceReference[] refs;
 
         try {
@@ -151,6 +153,6 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
             throw new NamingException("Error loading services from service registry with filter: " + e.getFilter());
         }
 
-        return refs;
+        return Arrays.asList(refs);
     }
 }

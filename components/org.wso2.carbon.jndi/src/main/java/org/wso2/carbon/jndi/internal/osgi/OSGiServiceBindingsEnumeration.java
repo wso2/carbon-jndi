@@ -25,6 +25,7 @@ import org.osgi.framework.ServiceReference;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Predicate;
 import javax.naming.Binding;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -43,28 +44,33 @@ public class OSGiServiceBindingsEnumeration implements NamingEnumeration<Binding
      */
     protected Iterator<Binding> iterator;
 
-    public OSGiServiceBindingsEnumeration(BundleContext bundleContext, ServiceReference[] refs) {
+    /**
+     * ServiceReference list for the given context.
+     */
+    private List<ServiceReference> references;
+
+    public OSGiServiceBindingsEnumeration(BundleContext bundleContext, List<ServiceReference> refs) {
         this.bundleContext = bundleContext;
         List<Binding> bindings = buildBindings(refs);
         iterator = bindings.iterator();
+        references = refs;
     }
 
-    private List<Binding> buildBindings(ServiceReference[] serviceReferences) {  //todo java8
+    private List<Binding> buildBindings(List<ServiceReference> serviceReferencesList) {
         List<Binding> bindings = new ArrayList<>();
-        for (ServiceReference serviceReference : serviceReferences) {
-            Object service = bundleContext.getService(serviceReference);
-            if (service != null) {
-                String className = service.getClass().getName();
-                //name are a string with the service.id number
-                String name = String.valueOf(serviceReference.getProperty(Constants.SERVICE_ID));
-                //A Binding object contains the name, class of the service, and the service object.
-                Binding binding = new Binding(name, className, service);
-                bindings.add(binding);
-            }
-        }
-
+        //name are a string with the service.id number
+        //A Binding object contains the name, class of the service, and the service object.
+        serviceReferencesList.stream()
+                .filter(filterNotNullReferences)
+                .forEach(serviceReference -> bindings.add(new Binding(
+                        String.valueOf(serviceReference.getProperty(Constants.SERVICE_ID)),
+                        bundleContext.getService(serviceReference).getClass().getName(),
+                        bundleContext.getService(serviceReference))));
         return bindings;
     }
+
+    private Predicate<ServiceReference> filterNotNullReferences =
+            (ServiceReference reference) -> (bundleContext.getService(reference) != null);
 
     /**
      * Retrieves the next element in the enumeration.
@@ -82,9 +88,12 @@ public class OSGiServiceBindingsEnumeration implements NamingEnumeration<Binding
         return iterator.hasNext();
     }
 
+    /**
+     * unget any gotten services and cleanup.
+     */
     @Override
     public void close() throws NamingException {
-        //todo
+        references.stream().forEach(bundleContext::ungetService);
     }
 
     /**
