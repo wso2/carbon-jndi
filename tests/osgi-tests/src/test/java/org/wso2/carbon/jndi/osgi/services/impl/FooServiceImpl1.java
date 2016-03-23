@@ -15,25 +15,15 @@
 *  specific language governing permissions and limitations
 *  under the License.
 */
+package org.wso2.carbon.jndi.osgi.services.impl;
 
-package org.wso2.carbon.jndi.internal.osgi;
+import org.wso2.carbon.jndi.osgi.services.FooService;
 
-import java.util.Hashtable;
+public class FooServiceImpl1 implements FooService {
 
-import javax.naming.Context;
-import javax.naming.Name;
-import javax.naming.spi.ObjectFactory;
+    public FooServiceImpl1() {
+    }
 
-/**
- * URLContextFactory for osgi: namespace.
- */
-public class OSGiURLContextFactory implements ObjectFactory {
-
-    @Override
-    public Object getObjectInstance(Object obj,
-                                    Name name,
-                                    Context nameCtx,
-                                    Hashtable<?, ?> environment) throws Exception {
-        return null;
+    public FooServiceImpl1(String name) {
     }
 }
