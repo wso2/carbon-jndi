@@ -73,6 +73,63 @@ public class ActivatorComponent {
 }
 ```
 
+### OSGI URL Scheme
+
+An OSGI URL scheme is available for users to access services in service registry. This URL scheme can have the format
+    osgi:service/<interface>/<filter>
+No spaces are allowed between the terms. Thi OSGi URL scheme can be used to perform lookup of a OSGi service using the
+interface and the filter. 
+Following is an example lookup for an OSGi service using JNDI
+
+```java
+
+        FooService fooService = new FooServiceImpl();
+        
+        ServiceRegistration<FooService> fooServiceRegistration = bundleContext.registerService(
+                FooService.class, fooService, propertyMap);
+                
+        Context context = jndiContextManager.newInitialContext();
+
+        Object service = context.lookup("osgi:service/org.wso2.carbon.jndi.osgi.services.FooService");
+```
+Above lookup is equal to accessing the OSGi service from bundle context as below,
+
+```java
+
+        ServiceReference serviceReference = ctx.getServiceReference("org.wso2.carbon.jndi.osgi.services.FooService", filter);
+        Object ctxService = ctx.getService(reference);
+```
+Multiple services can be obtained using OSGi scheme with "servicelist" path, which will return a Context object.
+Calling the listBindings method will produce a NamingEnumeration object that provides Binding objects. 
+A Binding object contains the name, class of the service, and the service object. 
+
+```java
+        NamingEnumeration<Binding> listBindings =
+                context.listBindings("osgi:servicelist/org.wso2.carbon.jndi.osgi.services.FooService");
+
+        if(listBindings.hasMoreElements()) {
+
+        Binding binding = listBindings.nextElement();
+        
+        }
+```        
+
+When the Context class list method is called, the Naming Enumeration object provides a NameClassPair object. 
+This NameClassPair object will include the name and class of each service in the Context. The list method can be useful
+ in cases where a client wishes to iterate over the available services without actually getting them. 
+ If the service itself is required, then listBindings method should be used.
+ 
+ ```java
+        NamingEnumeration<NameClassPair> namingEnumeration =
+                 context.list("osgi:service/org.wso2.carbon.jndi.osgi.services.FooService");
+ 
+         if(namingEnumeration.hasMoreElements()) {
+ 
+         NameClassPair nameClassPair = namingEnumeration.nextElement();
+         
+         }
+
+```
 For full source code, see [Carbon JNDI samples] (samples).
 ## Download 
 

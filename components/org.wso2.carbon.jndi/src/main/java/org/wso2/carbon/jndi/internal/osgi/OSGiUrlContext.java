@@ -90,21 +90,6 @@ public class OSGiUrlContext extends AbstractOSGiUrlContext {
         return lookupResult;
     }
 
-    private String getSchemePath(String scheme) {
-        //osgi:service or osgi:servicelist
-        int index = scheme.indexOf(':');
-
-        String result;
-
-        if (index > 0) {
-            result = scheme.substring(index + 1);
-        } else {
-            result = null;
-        }
-
-        return result;
-    }
-
     /**
      * Retrieves the named object.
      *

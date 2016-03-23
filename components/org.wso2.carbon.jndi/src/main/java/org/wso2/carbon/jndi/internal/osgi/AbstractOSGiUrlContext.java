@@ -66,7 +66,7 @@ public abstract class AbstractOSGiUrlContext implements Context {
                                  Map<String, Object> env) throws NamingException {
         String interfaceName = lookupName.getInterface();
         String filter = lookupName.getFilter();
-        String serviceName = lookupName.getJNDIServiceName();
+        String serviceName = lookupName.getJNDIServiceName(lookupName.get(0));
 
         //find the service with the given interface and filter.
         Object result;
@@ -103,6 +103,21 @@ public abstract class AbstractOSGiUrlContext implements Context {
             // osgi.jndi.service.name and this may read filter=myService which causes an invalid syntax exception)
         }
         return null;
+    }
+
+    protected String getSchemePath(String scheme) {
+        //osgi:service or osgi:servicelist
+        int index = scheme.indexOf(':');
+
+        String result;
+
+        if (index > 0) {
+            result = scheme.substring(index + 1);
+        } else {
+            result = null;
+        }
+
+        return result;
     }
 
     /**

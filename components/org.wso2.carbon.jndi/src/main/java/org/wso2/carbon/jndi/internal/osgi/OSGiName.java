@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.jndi.internal.osgi;
 
-import java.util.Enumeration;
 import javax.naming.CompositeName;
 import javax.naming.InvalidNameException;
 import javax.naming.Name;
@@ -51,21 +50,10 @@ public class OSGiName extends CompositeName {
         return size() == 3;
     }
 
-    public String getJNDIServiceName() {
-        StringBuilder builder = new StringBuilder();
-        Enumeration<String> parts = getAll();
-        parts.nextElement();  //we need to skip the first component (eg:osgi:service)
-
-        if (parts.hasMoreElements()) {
-            while (parts.hasMoreElements()) {
-                builder.append(parts.nextElement());
-                builder.append('/');
-            }
-
-            builder.deleteCharAt(builder.length() - 1);  //remove last "/" character
-        }
-
-        return builder.toString();
+    public String getJNDIServiceName(String scheme) {
+        //if the JNDI service name is foo, then the URL :osgi:service/foo selects the service
+        String serviceName = this.toString();
+        return this.toString().substring(scheme.length() + 1, serviceName.length());
     }
 
     public String getInterface() {

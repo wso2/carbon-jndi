@@ -106,7 +106,7 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
      */
     @Override
     public NamingEnumeration<NameClassPair> list(String name) throws NamingException {
-        String jndiServiceName = osgiLookupName.getJNDIServiceName();
+        String jndiServiceName = osgiLookupName.getJNDIServiceName(osgiLookupName.get(0));
         List<ServiceReference> serviceReferences = getServiceReferences(callerContext,
                 osgiLookupName.getInterface(), osgiLookupName.getFilter(), jndiServiceName);
         return new OSGiServiceNamingEnumeration(callerContext, serviceReferences);
@@ -133,7 +133,7 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
      */
     @Override
     public NamingEnumeration<Binding> listBindings(String name) throws NamingException {
-        String jndiServiceName = osgiLookupName.getJNDIServiceName();
+        String jndiServiceName = osgiLookupName.getJNDIServiceName(osgiLookupName.get(0));
         List<ServiceReference> serviceReferences = getServiceReferences(callerContext,
                 osgiLookupName.getInterface(), osgiLookupName.getFilter(), jndiServiceName);
         return new OSGiServiceBindingsEnumeration(callerContext, serviceReferences);
