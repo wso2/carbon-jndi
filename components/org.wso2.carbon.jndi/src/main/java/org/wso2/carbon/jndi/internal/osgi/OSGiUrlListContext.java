@@ -23,6 +23,7 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.jndi.JNDIConstants;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -153,6 +154,9 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
             throw new NamingException("Error loading services from service registry with filter: " + e.getFilter());
         }
 
-        return Arrays.asList(refs);
+        if (refs != null) {
+            return Arrays.asList(refs);
+        }
+        return new ArrayList();
     }
 }

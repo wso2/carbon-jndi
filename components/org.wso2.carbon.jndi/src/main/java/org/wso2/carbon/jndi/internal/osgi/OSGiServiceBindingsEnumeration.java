@@ -66,6 +66,7 @@ public class OSGiServiceBindingsEnumeration implements NamingEnumeration<Binding
                         String.valueOf(serviceReference.getProperty(Constants.SERVICE_ID)),
                         bundleContext.getService(serviceReference).getClass().getName(),
                         bundleContext.getService(serviceReference))));
+
         return bindings;
     }
 

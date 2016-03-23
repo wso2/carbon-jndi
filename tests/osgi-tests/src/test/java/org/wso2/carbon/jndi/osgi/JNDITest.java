@@ -59,6 +59,7 @@ import javax.naming.Binding;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NameClassPair;
+import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.spi.InitialContextFactory;
@@ -259,7 +260,7 @@ public class JNDITest {
     /**
      * In this method we are testing the functionality of the JNDIContextManager when there are multiple
      * InitialContextFactory services with different service.ranking property value.
-     * <p/>
+     * <p>
      * We also test the situation with an InitialContextFactory which returns a null context.
      */
     @Test(dependsOnMethods = "testJNDIContextManagerWithEnvironmentContextFactory")
@@ -364,7 +365,7 @@ public class JNDITest {
     /**
      * In this method we are testing the functionality of the JNDIContextManager when there are multiple
      * InitialContextFactoryBuilder services with different service.ranking property value.
-     * <p/>
+     * <p>
      * We also test the situation with an InitialContextFactoryBuilder which returns a null context.
      */
     @Test(dependsOnMethods = "testJNDIContextManagerWithEnvironmentContextFactoryBuilder")
@@ -528,6 +529,15 @@ public class JNDITest {
     }
 
     /**
+     * In this test we are trying do a osgi:service lookup for a service that is not registered
+     */
+    @Test(dependsOnMethods = "testOSGIUrlWithJNDIServiceName2", expectedExceptions = {NameNotFoundException.class})
+    public void testOSGIUrlWithUnregisteredService() throws NamingException {
+        Context context = jndiContextManager.newInitialContext();
+        context.lookup("osgi:service/foo");
+    }
+
+    /**
      * In this test we are trying do a osgi:servicelist list() and test the NamingEnumeration object returned.
      */
     @Test(dependsOnMethods = "testOSGIUrlWithJNDIServiceName")
@@ -551,6 +561,15 @@ public class JNDITest {
         assertEquals(nameClassPair.getName(),
                 String.valueOf(fooServiceRegistration.getReference().getProperty(Constants.SERVICE_ID)));
         fooServiceRegistration.unregister();
+    }
+
+    /**
+     * In this test we are trying do a osgi:service lookup for a service with an invalid filter
+     */
+    @Test(dependsOnMethods = "testOSGIUrlWithServiceListList", expectedExceptions = {NamingException.class})
+    public void testOSGIUrlListWithUnregisteredService() throws NamingException {
+        Context context = jndiContextManager.newInitialContext();
+        context.list("osgi:service/(org.wso2.carbon.jndi.osgi.services.FooService");
     }
 
     /**

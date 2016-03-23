@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
-import javax.naming.Binding;
 import javax.naming.NameClassPair;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -57,10 +56,9 @@ public class OSGiServiceNamingEnumeration implements NamingEnumeration<NameClass
         //A Binding object contains the name, class of the service, and the service object.
         serviceReferencesList.stream()
                 .filter(filterNotNullReferences)
-                .forEach(serviceReference -> nameClassPairList.add(new Binding(
+                .forEach(serviceReference -> nameClassPairList.add(new NameClassPair(
                         String.valueOf(serviceReference.getProperty(Constants.SERVICE_ID)),
-                        bundleContext.getService(serviceReference).getClass().getName(),
-                        bundleContext.getService(serviceReference))));
+                        bundleContext.getService(serviceReference).getClass().getName())));
         return nameClassPairList;
     }
 
