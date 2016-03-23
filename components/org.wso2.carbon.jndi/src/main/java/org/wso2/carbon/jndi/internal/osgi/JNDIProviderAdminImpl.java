@@ -197,18 +197,16 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
 
     }
 
-    private Object getObjectInstanceUsingFactoryClassName(
-            String factoryClassName,
-            Name name,
-            Context context,
-            Hashtable<Object, Object> env,
-            Reference reference, Attributes attributes) throws Exception {
+    private Object getObjectInstanceUsingFactoryClassName(String factoryClassName,
+                                                          Name name,
+                                                          Context context,
+                                                          Hashtable<Object, Object> env,
+                                                          Reference reference, Attributes attributes) throws Exception {
         Object result = null;
         ObjectFactory objectFactory;
         DirObjectFactory dirObjectFactory;
-        ServiceReference[] factorySRefCollection = bundleContext.getServiceReferences(factoryClassName, null);
-        Iterator<ServiceReference> referenceIterator =
-                (Iterator<ServiceReference>) Arrays.asList(factorySRefCollection);
+        Iterator<ServiceReference<?>> referenceIterator =
+                Arrays.asList(bundleContext.getServiceReferences(factoryClassName, null)).iterator();
         while (referenceIterator.hasNext()) {
             ServiceReference serviceReference = referenceIterator.next();
             Object service = bundleContext.getService(serviceReference);
@@ -226,8 +224,11 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
         return result;
     }
 
-    private Object getObjectInstanceUsingObjectFactoryBuilders(
-            Object referenceObject, Name name, Context context, Hashtable<Object, Object> env, Attributes attributes) throws Exception {
+    private Object getObjectInstanceUsingObjectFactoryBuilders(Object referenceObject,
+                                                               Name name,
+                                                               Context context,
+                                                               Hashtable<Object, Object> env,
+                                                               Attributes attributes) throws Exception {
         Object result = null;
         Collection<ServiceReference<ObjectFactoryBuilder>> objectFactoryBuilderRef =
                 getServiceReferences(bundleContext, ObjectFactoryBuilder.class, null);
@@ -244,9 +245,6 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
         }
         return result;
     }
-
-
-    //--------------------------- TODO refactor similar methods and avoid duplicate logic -------------------------------
 
     private Object getObjectInstanceUsingRefAddress(Reference reference,
                                                     Name name,
