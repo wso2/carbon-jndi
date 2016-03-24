@@ -49,6 +49,12 @@ public class OSGiServiceBindingsEnumeration implements NamingEnumeration<Binding
      */
     private List<ServiceReference> references;
 
+    /**
+     * create OSGiServiceBindingsEnumeration instance building the Binding objects.
+     *
+     * @param bundleContext owning bundle context
+     * @param refs  servicereferences of each service of the registry
+     */
     public OSGiServiceBindingsEnumeration(BundleContext bundleContext, List<ServiceReference> refs) {
         this.bundleContext = bundleContext;
         List<Binding> bindings = buildBindings(refs);

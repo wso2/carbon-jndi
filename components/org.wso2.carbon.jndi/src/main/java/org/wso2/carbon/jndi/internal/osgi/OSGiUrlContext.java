@@ -28,7 +28,7 @@ import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 
 /**
- * JNDI context implementation for handling osgi:service lookup.
+ * JNDI context implementation for handling osgi:service queries.
  * Sample query osgi:service/interface/filter
  */
 public class OSGiUrlContext extends AbstractOSGiUrlContext {
@@ -56,7 +56,7 @@ public class OSGiUrlContext extends AbstractOSGiUrlContext {
         //osgi:service/<interface>/<filter>
         Object lookupResult;
         OSGiName osGiName = new OSGiName(name);
-        String scheme = name.get(0);
+        String scheme = osGiName.getProtocol();
         String interfaceName;
         //The owning bundle is the bundle that requested the initial Context from the JNDI Context Manager
         //service or received its Context through the InitialContext class
@@ -67,11 +67,11 @@ public class OSGiUrlContext extends AbstractOSGiUrlContext {
                 //namespace with the framework/bundleContext name.
                 //osgi:framework/bundleContext.
                 return callerContext;
-            } else if (getSchemePath(scheme).equals(SERVICE_PATH)) {
-                //The lookup for a URL with the osgi: scheme and service path returns the service with highest
-                //service.ranking and the lowest service.id. This scheme only allows a single service to be found
+            } else if (SERVICE_PATH.equals(getSchemePath(scheme))) {
+                //The lookup for a URL with the osgi: scheme and service path returns the service.
+                //This scheme only allows a single service to be found
                 lookupResult = findService(callerContext, osGiName, env);
-            } else if (getSchemePath(scheme).equals(SERVICE_LIST_PATH)) {
+            } else if (SERVICE_LIST_PATH.equals(getSchemePath(scheme))) {
                 //If this osgi:servicelist scheme is used from a lookup method then a Context object is returned
                 //instead of a service object
                 lookupResult = new OSGiUrlListContext(callerContext, env, name);

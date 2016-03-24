@@ -40,27 +40,51 @@ public class OSGiName extends CompositeName {
         this(name.toString());
     }
 
+    /**
+     * @return  true if Composite name has a interface.
+     */
     public boolean hasInterface() {
         return size() > 1;
     }
 
+    /**
+     * @return true if Composite name has a filter.
+     */
     public boolean hasFilter() {
         //following query will result size()>3 as size() will count the components separated by "/"
         //osgi:service/org.wso2.carbon.jndi.osgi.services.FooService/(osgi.jndi.service.name=foo/myService)
         return size() == 3;
     }
 
+    /**
+     * construct a JNDI service name with the given composite name.
+     * @param scheme of the OsgiName
+     * @return  JNDI service name
+     */
     public String getJNDIServiceName(String scheme) {
         //if the JNDI service name is foo, then the URL :osgi:service/foo selects the service
         String serviceName = this.toString();
         return this.toString().substring(scheme.length() + 1, serviceName.length());
     }
 
+    /**
+     * @return first component of the Composite name
+     */
     public String getInterface() {
         return hasInterface() ? get(1) : null;
     }
 
+    /**
+     * @return second component of the Composite name
+     */
     public String getFilter() {
         return hasFilter() ? get(2) : null;
+    }
+
+    /**
+     * @return third component of the Composite name
+     */
+    public String getProtocol() {
+        return this.get(0);
     }
 }

@@ -36,7 +36,7 @@ import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 
 /**
- * JNDI context implementation for handling osgi:servicelist lookup.
+ * JNDI context implementation for handling osgi:servicelist queries.
  */
 public class OSGiUrlListContext extends AbstractOSGiUrlContext {
     private OSGiName osgiLookupName;
@@ -106,7 +106,7 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
      */
     @Override
     public NamingEnumeration<NameClassPair> list(String name) throws NamingException {
-        String jndiServiceName = osgiLookupName.getJNDIServiceName(osgiLookupName.get(0));
+        String jndiServiceName = osgiLookupName.getJNDIServiceName(osgiLookupName.getProtocol());
         List<ServiceReference> serviceReferences = getServiceReferences(callerContext,
                 osgiLookupName.getInterface(), osgiLookupName.getFilter(), jndiServiceName);
         return new OSGiServiceNamingEnumeration(callerContext, serviceReferences);
@@ -133,7 +133,7 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
      */
     @Override
     public NamingEnumeration<Binding> listBindings(String name) throws NamingException {
-        String jndiServiceName = osgiLookupName.getJNDIServiceName(osgiLookupName.get(0));
+        String jndiServiceName = osgiLookupName.getJNDIServiceName(osgiLookupName.getProtocol());
         List<ServiceReference> serviceReferences = getServiceReferences(callerContext,
                 osgiLookupName.getInterface(), osgiLookupName.getFilter(), jndiServiceName);
         return new OSGiServiceBindingsEnumeration(callerContext, serviceReferences);
@@ -148,7 +148,7 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
 
             if (refs == null || refs.length == 0) {
                 refs = ctx.getServiceReferences((String) null, "(" + JNDIConstants.JNDI_SERVICENAME + "="
-                        + serviceName + ')');
+                        + serviceName + ")");
             }
         } catch (InvalidSyntaxException e) {
             throw new NamingException("Error loading services from service registry with filter: " + e.getFilter());
@@ -157,6 +157,6 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
         if (refs != null) {
             return Arrays.asList(refs);
         }
-        return new ArrayList();
+        return new ArrayList<>();
     }
 }
