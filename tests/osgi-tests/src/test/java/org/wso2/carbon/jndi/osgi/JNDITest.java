@@ -58,6 +58,7 @@ import javax.inject.Inject;
 import javax.naming.Binding;
 import javax.naming.Context;
 import javax.naming.InitialContext;
+import javax.naming.InvalidNameException;
 import javax.naming.NameClassPair;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
@@ -467,7 +468,7 @@ public class JNDITest {
 
         Context context = jndiContextManager.newInitialContext();
 
-        Object service = context.lookup("osgi:servicelist");
+        Object service = context.lookup("osgi:servicelist/");
 
         assertTrue(service instanceof Context, "No Context object returned from osg:servicelist scheme");
     }
@@ -648,5 +649,29 @@ public class JNDITest {
 
         assertNotNull(owningBundleContext);
         fooServiceRegistration.unregister();
+    }
+
+    /**
+     * In this test we are trying to do a lookup with an invalid url.
+     */
+    @Test(dependsOnMethods = "testOSGIUrlToGetOwningBundleContext", expectedExceptions = {InvalidNameException.class},
+            expectedExceptionsMessageRegExp = "Invalid OSGi URL scheme : osgi:servicelist")
+    public void testInvalidOSGIUrlContextLookup() throws NamingException {
+
+        Context context = jndiContextManager.newInitialContext();
+
+        context.lookup("osgi:servicelist");
+    }
+
+    /**
+     * In this test we are trying to do a lookup with an invalid url.
+     */
+    @Test(dependsOnMethods = "testInvalidOSGIUrlContextLookup", expectedExceptions = {InvalidNameException.class},
+            expectedExceptionsMessageRegExp = "Invalid OSGi URL scheme : osgi:services/")
+    public void testInvalidOSGIUrlListContextLookup() throws NamingException {
+
+        Context context = jndiContextManager.newInitialContext();
+
+        context.lookup("osgi:services/");
     }
 }

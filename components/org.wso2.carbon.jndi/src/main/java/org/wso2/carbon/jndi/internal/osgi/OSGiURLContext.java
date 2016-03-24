@@ -15,20 +15,12 @@
 *  specific language governing permissions and limitations
 *  under the License.
 */
-
 package org.wso2.carbon.jndi.internal.osgi;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.jndi.JNDIConstants;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.Hashtable;
 import javax.naming.Binding;
-import javax.naming.InvalidNameException;
 import javax.naming.Name;
 import javax.naming.NameClassPair;
 import javax.naming.NameNotFoundException;
@@ -36,23 +28,19 @@ import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 
 /**
- * JNDI context implementation for handling osgi:servicelist queries.
+ * JNDI context implementation for handling osgi:service queries.
+ * Sample query osgi:service/interface/filter
  */
-public class OSGiUrlListContext extends AbstractOSGiUrlContext {
-    private OSGiName osgiLookupName;
+public class OSGiURLContext extends AbstractOSGiURLContext {
 
     /**
      * Set the owning bundle context and environment variables.
      *
-     * @param callerContext caller bundleContext.
-     * @param environment   environment information to create the context.
-     * @param name          name for the context.
-     * @throws InvalidNameException if creating OSGIName fails.
+     * @param callerContext caller bundleContext
+     * @param environment   environment information to create the context
      */
-    public OSGiUrlListContext(BundleContext callerContext, Map<String, Object> environment, Name name)
-            throws InvalidNameException {
-        super(callerContext, environment, name);
-        osgiLookupName = new OSGiName(name);
+    public OSGiURLContext(BundleContext callerContext, Hashtable<?, ?> environment) {
+        super(callerContext, environment);
     }
 
     /**
@@ -64,23 +52,54 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
      */
     @Override
     public Object lookup(Name name) throws NamingException {
-        return lookup(name.toString());
+
+        //osgi:service/<interface>/<filter>
+        Object lookupResult;
+        OSGiName osgiName = new OSGiName(name);
+        String protocol = osgiName.getProtocol();
+        String interfaceName;
+        //The owning bundle is the bundle that requested the initial Context from the JNDI Context Manager
+        //service or received its Context through the InitialContext class
+        if (osgiName.containsQuery()) {
+            interfaceName = osgiName.getInterface();
+            if (FRAMEWORK_PATH.equals(getSubContext(protocol)) && BUNDLE_CONTEXT.equals(interfaceName)) {
+                //A JNDI client can also obtain the Bundle Context of the owning bundle by using the osgi: scheme
+                //namespace with the framework/bundleContext name.
+                //osgi:framework/bundleContext.
+                return callerContext;
+            } else if (SERVICE_PATH.equals(getSubContext(protocol))) {
+                //The lookup for a URL with the osgi: scheme and service path returns the service.
+                //This scheme only allows a single service to be found
+                lookupResult = findService(callerContext, osgiName, env);
+            } else if (SERVICE_LIST_PATH.equals(getSubContext(protocol))) {
+                //If this osgi:servicelist scheme is used from a lookup method then a Context object is returned
+                //instead of a service object
+                lookupResult = new OSGiURLListContext(callerContext, env, name);
+            } else {
+                lookupResult = null;
+            }
+
+        } else {
+            lookupResult = new OSGiURLListContext(callerContext, env, name);
+        }
+
+        if (lookupResult == null) {
+            throw new NameNotFoundException(name.toString());
+        }
+
+        return lookupResult;
     }
 
     /**
-     * lookup services in the service registry.
+     * Retrieves the named object.
      *
-     * @param name lookup name for OSGi scheme.
-     * @return service or serviceList context based on the query.
-     * @throws NamingException if a naming exception is encountered.
+     * @param name the name of the object to look up
+     * @return the object bound to <tt>name</tt>
+     * @throws NamingException if a jndi exception is encountered
      */
     @Override
     public Object lookup(String name) throws NamingException {
-        Object result = findService(callerContext, osgiLookupName, env);
-        if (result == null) {
-            throw new NameNotFoundException(name);
-        }
-        return result;
+        return lookup(parser.parse(name));
     }
 
     /**
@@ -93,7 +112,7 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
      */
     @Override
     public NamingEnumeration<NameClassPair> list(Name name) throws NamingException {
-        return list(name.toString());
+        return new OSGiURLListContext(callerContext, env, name).list(name);
     }
 
     /**
@@ -106,10 +125,7 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
      */
     @Override
     public NamingEnumeration<NameClassPair> list(String name) throws NamingException {
-        String jndiServiceName = osgiLookupName.getJNDIServiceName(osgiLookupName.getProtocol());
-        List<ServiceReference> serviceReferences = getServiceReferences(callerContext,
-                osgiLookupName.getInterface(), osgiLookupName.getFilter(), jndiServiceName);
-        return new OSGiServiceNamingEnumeration(callerContext, serviceReferences);
+        return list(parser.parse(name));
     }
 
     /**
@@ -121,7 +137,7 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
      */
     @Override
     public NamingEnumeration<Binding> listBindings(Name name) throws NamingException {
-        return listBindings(name.toString());
+        return new OSGiURLListContext(callerContext, env, name).listBindings(name);
     }
 
     /**
@@ -133,30 +149,7 @@ public class OSGiUrlListContext extends AbstractOSGiUrlContext {
      */
     @Override
     public NamingEnumeration<Binding> listBindings(String name) throws NamingException {
-        String jndiServiceName = osgiLookupName.getJNDIServiceName(osgiLookupName.getProtocol());
-        List<ServiceReference> serviceReferences = getServiceReferences(callerContext,
-                osgiLookupName.getInterface(), osgiLookupName.getFilter(), jndiServiceName);
-        return new OSGiServiceBindingsEnumeration(callerContext, serviceReferences);
+        return listBindings(parser.parse(name));
     }
 
-    private List<ServiceReference> getServiceReferences(BundleContext ctx, String interfaceName,
-                                                        String filter, String serviceName) throws NamingException {
-        ServiceReference[] refs;
-
-        try {
-            refs = ctx.getServiceReferences(interfaceName, filter);
-
-            if (refs == null || refs.length == 0) {
-                refs = ctx.getServiceReferences((String) null, "(" + JNDIConstants.JNDI_SERVICENAME + "="
-                        + serviceName + ")");
-            }
-        } catch (InvalidSyntaxException e) {
-            throw new NamingException("Error loading services from service registry with filter: " + e.getFilter());
-        }
-
-        if (refs != null) {
-            return Arrays.asList(refs);
-        }
-        return new ArrayList<>();
-    }
 }

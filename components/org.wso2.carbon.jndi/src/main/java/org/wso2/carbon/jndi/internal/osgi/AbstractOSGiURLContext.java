@@ -37,7 +37,7 @@ import javax.naming.OperationNotSupportedException;
  * Abstract class for common method implementations for
  * OSGiUrlContext and OSGIUrlListContext.
  */
-public abstract class AbstractOSGiUrlContext implements Context {
+public abstract class AbstractOSGiURLContext implements Context {
 
     /**
      * The environment for this context
@@ -56,7 +56,7 @@ public abstract class AbstractOSGiUrlContext implements Context {
      * @param callerContext caller bundle context.
      * @param environment   environment properties to set.
      */
-    public AbstractOSGiUrlContext(BundleContext callerContext, Hashtable<?, ?> environment) {
+    public AbstractOSGiURLContext(BundleContext callerContext, Hashtable<?, ?> environment) {
         this.callerContext = callerContext;
         parser = new NameParserImpl();
         env = new HashMap<>();
@@ -70,7 +70,7 @@ public abstract class AbstractOSGiUrlContext implements Context {
      * @param environment   environment properties to set.
      * @param validName     lookup name
      */
-    public AbstractOSGiUrlContext(BundleContext callerContext, Map<String, Object> environment, Name validName) {
+    public AbstractOSGiURLContext(BundleContext callerContext, Map<String, Object> environment, Name validName) {
         this.callerContext = callerContext;
         parser = new NameParserImpl();
         env = environment;
@@ -134,7 +134,7 @@ public abstract class AbstractOSGiUrlContext implements Context {
      * @param scheme first component of the osgi query (eg: osgi:service)
      * @return scheme path
      */
-    protected String getSchemePath(String scheme) {
+    protected String getSubContext(String scheme) {
         //osgi:service or osgi:servicelist
         int index = scheme.indexOf(":");
 
