@@ -22,8 +22,6 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.jndi.JNDIConstants;
 import org.osgi.service.jndi.JNDIProviderAdmin;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -53,7 +51,6 @@ import static org.wso2.carbon.jndi.internal.util.LambdaExceptionUtils.rethrowFun
  * Implements JNDIProviderAdmin interface.
  */
 public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
-    private static final Logger logger = LoggerFactory.getLogger(JNDIProviderAdminImpl.class);
 
     private BundleContext bundleContext;
     private static final String ADDRESS_TYPE = "URL";
@@ -72,21 +69,22 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
         //1) If the description object is an instance of Referenceable , then get the corresponding Reference object
         Object referenceObject = getReferenceObject(refInfo);
         if (referenceObject instanceof Reference) {
+
             Reference reference = (Reference) referenceObject;
 
             String factoryClassName = reference.getFactoryClassName();
-            // 3) If a factory class name is specified, use Bundle Context to search for a service registered under
-            // the Reference's factory class name.
             if (factoryClassName != null && !"".equals(factoryClassName)) {
-                result = getObjectInstanceUsingFactoryClassName(factoryClassName, name, context, env, reference, null);
+                // 3) If a factory class name is specified, use Bundle Context to search for a service registered under
+                // the Reference's factory class name and create the object.
+                result = createObjectUsingObjectFactoryClassName(factoryClassName, name, context, env, reference);
 
             } else {
                 //3) If no factory class name is specified,use Reference object's StringRefAddrs.
-                result = getObjectInstanceUsingRefAddress(reference, name, context, env);
+                result = createObjectUsingStringRefAddress(reference, null, null, env);
                 if (result == null) {
                     //attempt to convert the object with each Object Factory service in ranking order
                     // until a non-null value is returned
-                    result = getObjectInstanceUsingObjectFactories(reference, name, context, env);
+                    result = createObjectUsingObjectFactories(reference, name, context, env);
                 }
             }
             if (result == null) {
@@ -96,11 +94,11 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
             // 2.) If the description object is not a Reference object.
             // Iterate over the Object Factory Builder services in ranking order. Attempt to use each such service
             //to create an ObjectFactory or DirObjectFactory instance.
-            result = getObjectInstanceUsingObjectFactoryBuilders(referenceObject, name, context, env, null);
+            result = createObjectUsingObjectFactoryBuilders(referenceObject, name, context, env, null);
             if (result == null) {
                 //attempt to convert the object with each Object Factory service in ranking order
                 // until a non-null value is returned
-                result = getObjectInstanceUsingObjectFactories(referenceObject, name, context, env);
+                result = createObjectUsingObjectFactories(referenceObject, name, context, env);
             }
 
         }
@@ -132,19 +130,30 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
         Object referenceObject = getReferenceObject(refInfo);
 
         if (referenceObject instanceof Reference) {
+
             Reference reference = (Reference) referenceObject;
+
             String factoryClassName = reference.getFactoryClassName();
-            // 3) If a factory class name is specified, use Bundle Context to search for a service registered under
-            // the Reference's factory class name.
             if (factoryClassName != null && !"".equals(factoryClassName)) {
-                result = getObjectInstanceUsingFactoryClassName(factoryClassName, name, context, env, reference, attributes);
+                // 3) If a factory class name is specified, use Bundle Context to search for a service registered under
+                // the Reference's factory class name and create the object.
+                result = createObjectUsingDirObjectFactoryClassName(factoryClassName,
+                        name, context, env, reference, attributes);
+                if (result == null) {
+                    //consult Object factory services if creating object with Dir Object factory services fails.
+                    result = createObjectUsingObjectFactoryClassName(factoryClassName, name, context, env, reference);
+                }
             } else {
                 //3) If no factory class name is specified,use Reference object's StringRefAddrs.
-                result = getDirObjectInstanceUsingRefAddress(reference, name, context, env, attributes);
+                result = createDirObjectUsingStringRefAddress(reference, null, null, env, attributes);
+                if (result == null) {
+                    //consult Object factory services if creating object with Dir Object factory services fails.
+                    result = createObjectUsingStringRefAddress(reference, name, context, env);
+                }
                 if (result == null) {
                     //attempt to convert the object with each Object Factory service in ranking order
                     // until a non-null value is returned
-                    result = getDirObjectInstanceUsingObjectFactories(reference, name, context, env, attributes);
+                    result = createObjectUsingDirObjectFactories(reference, name, context, env, attributes);
                 }
             }
             if (result == null) {
@@ -155,11 +164,11 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
             // 2.) If the description object is not a Reference object.
             // Iterate over the Object Factory Builder services in ranking order. Attempt to use each such service
             //to create an ObjectFactory or DirObjectFactory instance.
-            result = getObjectInstanceUsingObjectFactoryBuilders(referenceObject, name, context, env, attributes);
+            result = createObjectUsingObjectFactoryBuilders(referenceObject, name, context, env, attributes);
             if (result == null) {
                 //attempt to convert the object with each Object Factory service in ranking order
                 // until a non-null value is returned
-                result = getDirObjectInstanceUsingObjectFactories(referenceObject, name, context, env, attributes);
+                result = createObjectUsingDirObjectFactories(referenceObject, name, context, env, attributes);
             }
         }
 
@@ -176,7 +185,7 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
             Referenceable referenceable = (Referenceable) refInfo;
             return referenceable.getReference();
         } else {
-            // this object is either a Reference or another type
+            // this object can be another type
             return refInfo;
         }
     }
@@ -197,38 +206,50 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
 
     }
 
-    private Object getObjectInstanceUsingFactoryClassName(String factoryClassName,
-                                                          Name name,
-                                                          Context context,
-                                                          Hashtable<Object, Object> env,
-                                                          Reference reference, Attributes attributes) throws Exception {
+    private Object createObjectUsingObjectFactoryClassName(String factoryClassName,
+                                                           Name name,
+                                                           Context context,
+                                                           Hashtable<Object, Object> env,
+                                                           Reference reference) throws Exception {
         Object result = null;
         ObjectFactory objectFactory;
-        DirObjectFactory dirObjectFactory;
         Iterator<ServiceReference<?>> referenceIterator =
-                Arrays.asList(bundleContext.getServiceReferences(factoryClassName, null)).iterator();
+                Arrays.asList(bundleContext.getServiceReferences(factoryClassName, null)).iterator(); //todo fix NPE
         while (referenceIterator.hasNext()) {
-            ServiceReference serviceReference = referenceIterator.next();
-            Object service = bundleContext.getService(serviceReference);
+            Object service = bundleContext.getService(referenceIterator.next());
             if (service != null) {
-                if (service instanceof DirObjectFactory) {
-                    dirObjectFactory = (DirObjectFactory) service;
-                    result = dirObjectFactory.getObjectInstance(reference, name, context, env, attributes);
-                } else {
-                    objectFactory = (ObjectFactory) service;
-                    result = objectFactory.getObjectInstance(reference, name, context, env);
-                }
-
+                objectFactory = (ObjectFactory) service;
+                result = objectFactory.getObjectInstance(reference, name, context, env);
             }
         }
         return result;
     }
 
-    private Object getObjectInstanceUsingObjectFactoryBuilders(Object referenceObject,
-                                                               Name name,
-                                                               Context context,
-                                                               Hashtable<Object, Object> env,
-                                                               Attributes attributes) throws Exception {
+    private Object createObjectUsingDirObjectFactoryClassName(String factoryClassName,
+                                                              Name name,
+                                                              Context context,
+                                                              Hashtable<Object, Object> env,
+                                                              Reference reference,
+                                                              Attributes attributes) throws Exception {
+        Object result = null;
+        DirObjectFactory dirObjectFactory;
+        Iterator<ServiceReference<?>> referenceIterator =
+                Arrays.asList(bundleContext.getServiceReferences(factoryClassName, null)).iterator();
+        while (referenceIterator.hasNext()) {
+            Object service = bundleContext.getService(referenceIterator.next());
+            if (service != null) {
+                dirObjectFactory = (DirObjectFactory) service;
+                result = dirObjectFactory.getObjectInstance(reference, name, context, env, attributes);
+            }
+        }
+        return result;
+    }
+
+    private Object createObjectUsingObjectFactoryBuilders(Object referenceObject,
+                                                          Name name,
+                                                          Context context,
+                                                          Hashtable<Object, Object> env,
+                                                          Attributes attributes) throws Exception {
         Object result = null;
         Collection<ServiceReference<ObjectFactoryBuilder>> objectFactoryBuilderRef =
                 getServiceReferences(bundleContext, ObjectFactoryBuilder.class, null);
@@ -238,7 +259,8 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
             // 3.)If this succeeds (non null) then use
             // this DirObjectFactory instance to recreate the object.
             if (factory.get() instanceof DirObjectFactory) {
-                result = ((DirObjectFactory) factory.get()).getObjectInstance(referenceObject, name, context, env, attributes);
+                result = ((DirObjectFactory) factory.get()).
+                        getObjectInstance(referenceObject, name, context, env, attributes);
             } else {
                 result = factory.get().getObjectInstance(referenceObject, name, context, env);
             }
@@ -246,27 +268,27 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
         return result;
     }
 
-    private Object getObjectInstanceUsingRefAddress(Reference reference,
-                                                    Name name,
-                                                    Context context,
-                                                    Hashtable<Object, Object> env) throws Exception {
-        //If no factory class name is specified, iterate over all the Reference object's StringRefAddrs
-        //objects with the address type of URL. For each matching address type, use the value to find a matching
-        //URL Context
+    private Object createObjectUsingStringRefAddress(Reference reference,
+                                                     Name name,
+                                                     Context context,
+                                                     Hashtable<Object, Object> env) throws Exception {
         Object result = null;
         Enumeration<RefAddr> refAddrEnumeration = reference.getAll();
         while (refAddrEnumeration.hasMoreElements()) {
             RefAddr refAddr = refAddrEnumeration.nextElement();
+            //Iterate over all the Reference object's StringRefAddrs
+            //objects with the address type of URL.
             if (refAddr instanceof StringRefAddr && refAddr.getType().equalsIgnoreCase(ADDRESS_TYPE)) {
+                // For each matching address type, use the value to find a matching URL Context
                 String urlScheme = getUrlScheme((String) refAddr.getContent());
                 Iterator<ServiceReference<ObjectFactory>> referenceIterator =
                         getServiceReferences(bundleContext, ObjectFactory.class, null).iterator();
                 while (referenceIterator.hasNext()) {
                     ServiceReference serviceReference = referenceIterator.next();
-                    if (serviceReference.getProperty(JNDIConstants.JNDI_URLSCHEME).equals(urlScheme)) {
+                    if (serviceReference.getProperty(JNDIConstants.JNDI_URLSCHEME) != null
+                            && serviceReference.getProperty(JNDIConstants.JNDI_URLSCHEME).equals(urlScheme)) {
                         ObjectFactory factory = (ObjectFactory) bundleContext.getService(serviceReference);
                         result = factory.getObjectInstance(reference, name, context, env);
-                        //todo does the parameters be null? page 507
                     }
                 }
             }
@@ -274,18 +296,18 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
         return result;
     }
 
-    private Object getDirObjectInstanceUsingRefAddress(Reference reference,
-                                                       Name name, Context context,
-                                                       Hashtable<Object, Object> env,
-                                                       Attributes attributes) throws Exception {
-        //3) If no factory class name is specified, iterate over all the Reference object's StringRefAddrs
-        //objects with the address type of URL. For each matching address type, use the value to find a matching
-        //URL Context.
+    private Object createDirObjectUsingStringRefAddress(Reference reference,
+                                                        Name name, Context context,
+                                                        Hashtable<Object, Object> env,
+                                                        Attributes attributes) throws Exception {
         Object result = null;
         Enumeration<RefAddr> refAddrEnumeration = reference.getAll();
         while (refAddrEnumeration.hasMoreElements()) {
             RefAddr refAddr = refAddrEnumeration.nextElement();
+            //Iterate over all the Reference object's StringRefAddrs
+            //objects with the address type of URL.
             if (refAddr instanceof StringRefAddr && refAddr.getType().equalsIgnoreCase(ADDRESS_TYPE)) {
+                // For each matching address type, use the value to find a matching URL Context
                 String urlScheme = getUrlScheme((String) refAddr.getContent());
                 Iterator<ServiceReference<DirObjectFactory>> referenceIterator =
                         getServiceReferences(bundleContext, DirObjectFactory.class, null).iterator();
@@ -302,9 +324,9 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
         return result;
     }
 
-    private Object getObjectInstanceUsingObjectFactories(Object reference,
-                                                         Name name, Context context,
-                                                         Hashtable<Object, Object> env) throws Exception {
+    private Object createObjectUsingObjectFactories(Object reference,
+                                                    Name name, Context context,
+                                                    Hashtable<Object, Object> env) throws Exception {
         Object result = null;
         Iterator<ServiceReference<ObjectFactory>> referenceIterator =
                 getServiceReferences(bundleContext, ObjectFactory.class, null).iterator();
@@ -320,9 +342,9 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
         return result;
     }
 
-    private Object getDirObjectInstanceUsingObjectFactories(Object reference, Name name,
-                                                            Context context, Hashtable<Object, Object> env,
-                                                            Attributes attributes) throws Exception {
+    private Object createObjectUsingDirObjectFactories(Object reference, Name name,
+                                                       Context context, Hashtable<Object, Object> env,
+                                                       Attributes attributes) throws Exception {
         Object result = null;
         Iterator<ServiceReference<DirObjectFactory>> referenceIterator =
                 getServiceReferences(bundleContext, DirObjectFactory.class, null).iterator();
