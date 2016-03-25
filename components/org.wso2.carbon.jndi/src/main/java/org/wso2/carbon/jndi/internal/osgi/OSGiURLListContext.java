@@ -71,13 +71,4 @@ public class OSGiURLListContext extends AbstractOSGiURLContext {
         }
         return result;
     }
-
-    /**
-     * provides Naming Enumeration object which provides a NameClassPair object.
-     * useful in cases where a client wishes to iterate over the available services without actually getting them.
-     *
-     * @param name name of the context to list
-     * @return Naming Enumeration object which provides a NameClassPair
-     * @throws NamingException if a jndi exception is encountered
-     */
 }

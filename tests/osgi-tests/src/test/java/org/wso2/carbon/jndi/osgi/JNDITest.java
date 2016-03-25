@@ -24,6 +24,7 @@ import org.ops4j.pax.exam.testng.listener.PaxExam;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.testng.annotations.Listeners;
@@ -415,7 +416,7 @@ public class JNDITest {
      * We register a service in the bundle context and do a lookup.
      */
     @Test(dependsOnMethods = "testJNDIContextManagerWithEnvironmentContextFactoryBuilder")
-    public void testOSGIUrlWithServiceScheme() throws NamingException {
+    public void testOSGIUrlWithServicePath() throws NamingException {
         FooService fooService = new FooServiceImpl1();
         ServiceRegistration<FooService> fooServiceRegistration =
                 bundleContext.registerService(FooService.class, fooService, null);
@@ -433,7 +434,7 @@ public class JNDITest {
      * In this test we are trying do a osgi:service lookup.
      * We register two services in the bundle context with different service rankings and perform a lookup.
      */
-    @Test(dependsOnMethods = "testOSGIUrlWithServiceScheme")
+    @Test(dependsOnMethods = "testOSGIUrlWithServicePath")
     public void testOSGIUrlWithServiceRanking() throws NamingException {
         Dictionary<String, Object> propertyMap = new Hashtable<>();
         propertyMap.put("service.ranking", 10);
@@ -464,7 +465,7 @@ public class JNDITest {
      * In this test we are trying do a osgi:servicelist lookup which should return a Context object.
      */
     @Test(dependsOnMethods = "testOSGIUrlWithServiceRanking")
-    public void testOSGIUrlWithServiceListScheme() throws NamingException {
+    public void testOSGIUrlWithServiceListPath() throws NamingException {
         FooService fooService = new FooServiceImpl1();
         ServiceRegistration<FooService> fooServiceRegistration = bundleContext.registerService(
                 FooService.class, fooService, null);
@@ -487,7 +488,7 @@ public class JNDITest {
      * In this test we are trying do a osgi:service lookup setting the
      * osgi.jndi.service.name.
      */
-    @Test(dependsOnMethods = "testOSGIUrlWithServiceListScheme")
+    @Test(dependsOnMethods = "testOSGIUrlWithServiceListPath")
     public void testOSGIUrlWithJNDIServiceName() throws NamingException {
         Dictionary<String, Object> propertyMap = new Hashtable<>();
         propertyMap.put("osgi.jndi.service.name", "foo/myService");
@@ -658,6 +659,13 @@ public class JNDITest {
         BundleContext owningBundleContext = (BundleContext) context.lookup("osgi:framework/bundleContext");
 
         assertNotNull(owningBundleContext);
+
+        ServiceReference serviceReference =
+                owningBundleContext.getServiceReference("org.wso2.carbon.jndi.osgi.services.FooService");
+
+        Object service = owningBundleContext.getService(serviceReference);
+        assertTrue(service instanceof FooServiceImpl1, "BundleContext returned does not have the " +
+                "expected service registered");
         fooServiceRegistration.unregister();
     }
 

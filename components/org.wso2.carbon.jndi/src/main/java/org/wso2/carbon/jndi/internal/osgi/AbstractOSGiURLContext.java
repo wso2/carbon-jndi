@@ -74,7 +74,7 @@ public abstract class AbstractOSGiURLContext implements Context {
      *
      * @param callerContext caller bundle context.
      * @param environment   environment properties to set.
-     * @param name     lookup name
+     * @param name          lookup name
      */
     public AbstractOSGiURLContext(BundleContext callerContext, Map<String, Object> environment, Name name) {
         this.callerContext = callerContext;
@@ -562,6 +562,14 @@ public abstract class AbstractOSGiURLContext implements Context {
         return prefix + "/" + name;
     }
 
+    /**
+     * provides Naming Enumeration object which provides a NameClassPair object.
+     * useful in cases where a client wishes to iterate over the available services without actually getting them.
+     *
+     * @param name name of the context to list
+     * @return Naming Enumeration object which provides a NameClassPair
+     * @throws NamingException if a jndi exception is encountered
+     */
     @Override
     public NamingEnumeration<NameClassPair> list(Name name) throws NamingException {
         return list(name.toString());
