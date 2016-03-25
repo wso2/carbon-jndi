@@ -20,11 +20,8 @@ package org.wso2.carbon.jndi.internal.osgi;
 import org.osgi.framework.BundleContext;
 
 import java.util.Hashtable;
-import javax.naming.Binding;
 import javax.naming.Name;
-import javax.naming.NameClassPair;
 import javax.naming.NameNotFoundException;
-import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 
 /**
@@ -100,56 +97,6 @@ public class OSGiURLContext extends AbstractOSGiURLContext {
     @Override
     public Object lookup(String name) throws NamingException {
         return lookup(parser.parse(name));
-    }
-
-    /**
-     * provides Naming Enumeration object which provides a NameClassPair object.
-     * useful in cases where a client wishes to iterate over the available services without actually getting them.
-     *
-     * @param name name of the context to list
-     * @return Naming Enumeration object which provides a NameClassPair
-     * @throws NamingException if a jndi exception is encountered
-     */
-    @Override
-    public NamingEnumeration<NameClassPair> list(Name name) throws NamingException {
-        return new OSGiURLListContext(callerContext, env, name).list(name);
-    }
-
-    /**
-     * provides Naming Enumeration object which provides a NameClassPair object.
-     * useful in cases where a client wishes to iterate over the available services without actually getting them.
-     *
-     * @param name name of the context to list
-     * @return Naming Enumeration object which provides a NameClassPair
-     * @throws NamingException if a jndi exception is encountered
-     */
-    @Override
-    public NamingEnumeration<NameClassPair> list(String name) throws NamingException {
-        return list(parser.parse(name));
-    }
-
-    /**
-     * produce a NamingEnumeration object that provides Binding objects.
-     *
-     * @param name Composite Name to create the OSGi Name
-     * @return NamingEnumeration object that provides Binding objects
-     * @throws NamingException if jndi exception encountered
-     */
-    @Override
-    public NamingEnumeration<Binding> listBindings(Name name) throws NamingException {
-        return new OSGiURLListContext(callerContext, env, name).listBindings(name);
-    }
-
-    /**
-     * produce a NamingEnumeration object that provides Binding objects.
-     *
-     * @param name Composite Name to create the OSGi Name
-     * @return NamingEnumeration object that provides Binding objects
-     * @throws NamingException if jndi exception encountered
-     */
-    @Override
-    public NamingEnumeration<Binding> listBindings(String name) throws NamingException {
-        return listBindings(parser.parse(name));
     }
 
 }

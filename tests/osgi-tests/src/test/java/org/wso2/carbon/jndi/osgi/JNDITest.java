@@ -465,12 +465,22 @@ public class JNDITest {
      */
     @Test(dependsOnMethods = "testOSGIUrlWithServiceRanking")
     public void testOSGIUrlWithServiceListScheme() throws NamingException {
+        FooService fooService = new FooServiceImpl1();
+        ServiceRegistration<FooService> fooServiceRegistration = bundleContext.registerService(
+                FooService.class, fooService, null);
 
         Context context = jndiContextManager.newInitialContext();
 
-        Object service = context.lookup("osgi:servicelist/");
+        Object listContext = context.lookup("osgi:servicelist/"); //return a Context object
 
-        assertTrue(service instanceof Context, "No Context object returned from osg:servicelist scheme");
+        assertTrue(listContext instanceof Context, "No Context object returned from osg:servicelist scheme");
+
+        Object service = ((Context) listContext).
+                lookup("osgi:servicelist/org.wso2.carbon.jndi.osgi.services.FooService");
+
+        assertTrue(service instanceof FooServiceImpl1, "Registered service did not returned from the next context");
+
+        fooServiceRegistration.unregister();
     }
 
     /**
@@ -660,7 +670,7 @@ public class JNDITest {
 
         Context context = jndiContextManager.newInitialContext();
 
-        context.lookup("osgi:servicelist");
+        context.lookup("osgi:servicelist");  //servicelist path should end with "/"
     }
 
     /**
@@ -672,6 +682,6 @@ public class JNDITest {
 
         Context context = jndiContextManager.newInitialContext();
 
-        context.lookup("osgi:services/");
+        context.lookup("osgi:services/"); //services is an invalid sub-context
     }
 }

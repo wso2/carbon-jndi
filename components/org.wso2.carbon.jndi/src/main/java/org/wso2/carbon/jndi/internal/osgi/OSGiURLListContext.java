@@ -19,20 +19,10 @@
 package org.wso2.carbon.jndi.internal.osgi;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.jndi.JNDIConstants;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
-import javax.naming.Binding;
 import javax.naming.InvalidNameException;
 import javax.naming.Name;
-import javax.naming.NameClassPair;
 import javax.naming.NameNotFoundException;
-import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 
 /**
@@ -90,74 +80,4 @@ public class OSGiURLListContext extends AbstractOSGiURLContext {
      * @return Naming Enumeration object which provides a NameClassPair
      * @throws NamingException if a jndi exception is encountered
      */
-    @Override
-    public NamingEnumeration<NameClassPair> list(Name name) throws NamingException {
-        return list(name.toString());
-    }
-
-    /**
-     * provides Naming Enumeration object which provides a NameClassPair object.
-     * useful in cases where a client wishes to iterate over the available services without actually getting them.
-     *
-     * @param name name of the context to list
-     * @return Naming Enumeration object which provides a NameClassPair
-     * @throws NamingException if a jndi exception is encountered
-     */
-    @Override
-    public NamingEnumeration<NameClassPair> list(String name) throws NamingException {
-        OSGiName osgiName = new OSGiName(name);
-        String jndiServiceName = osgiName.getJNDIServiceName(osgiName.getProtocol());
-        List<ServiceReference> serviceReferences = getServiceReferences(callerContext,
-                osgiName.getInterface(), osgiName.getFilter(), jndiServiceName);
-        return new OSGiServiceNamingEnumeration(callerContext, serviceReferences);
-    }
-
-    /**
-     * produce a NamingEnumeration object that provides Binding objects.
-     *
-     * @param name Composite Name to create the OSGi Name
-     * @return NamingEnumeration object that provides Binding objects
-     * @throws NamingException if jndi exception encountered
-     */
-    @Override
-    public NamingEnumeration<Binding> listBindings(Name name) throws NamingException {
-        return listBindings(name.toString());
-    }
-
-    /**
-     * produce a NamingEnumeration object that provides Binding objects.
-     *
-     * @param name Composite Name to create the OSGi Name
-     * @return NamingEnumeration object that provides Binding objects
-     * @throws NamingException if jndi exception encountered
-     */
-    @Override
-    public NamingEnumeration<Binding> listBindings(String name) throws NamingException {
-        OSGiName osgiName = new OSGiName(name);
-        String jndiServiceName = osgiName.getJNDIServiceName(osgiName.getProtocol());
-        List<ServiceReference> serviceReferences = getServiceReferences(callerContext,
-                osgiName.getInterface(), osgiName.getFilter(), jndiServiceName);
-        return new OSGiServiceBindingsEnumeration(callerContext, serviceReferences);
-    }
-
-    private List<ServiceReference> getServiceReferences(BundleContext ctx, String interfaceName,
-                                                        String filter, String serviceName) throws NamingException {
-        ServiceReference[] refs;
-
-        try {
-            refs = ctx.getServiceReferences(interfaceName, filter);
-
-            if (refs == null || refs.length == 0) {
-                refs = ctx.getServiceReferences((String) null, "(" + JNDIConstants.JNDI_SERVICENAME + "="
-                        + serviceName + ")");
-            }
-        } catch (InvalidSyntaxException e) {
-            throw new NamingException("Error loading services from service registry with filter: " + e.getFilter());
-        }
-
-        if (refs != null) {
-            return Arrays.asList(refs);
-        }
-        return new ArrayList<>();
-    }
 }
