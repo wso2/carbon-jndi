@@ -28,7 +28,7 @@ import javax.naming.NamingException;
 /**
  * JNDI context implementation for handling osgi:servicelist queries.
  */
-public class OSGiURLListContext extends AbstractOSGiURLContext {
+public class OSGiURLListContext extends OSGiURLContext {
 
     /**
      * Set the owning bundle context and environment variables.
