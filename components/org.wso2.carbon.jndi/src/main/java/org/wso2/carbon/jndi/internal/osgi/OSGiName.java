@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.jndi.internal.osgi;
 
+import java.util.Enumeration;
 import javax.naming.CompositeName;
 import javax.naming.InvalidNameException;
 import javax.naming.Name;
@@ -34,33 +35,78 @@ public class OSGiName extends CompositeName {
 
     public OSGiName(String name) throws InvalidNameException {
         super(name);
+        if (!isValid(name)) {
+            throw new InvalidNameException("Invalid OSGi URL scheme : " + name);
+        }
     }
 
     public OSGiName(Name name) throws InvalidNameException {
         this(name.toString());
     }
 
-    public boolean hasInterface() {
+    /**
+     * @return true if Composite name has a interface.
+     */
+    public boolean containsQuery() {
         return size() > 1;
     }
 
+    /**
+     * @return true if Composite name has a filter.
+     */
     public boolean hasFilter() {
         //following query will result size()>3 as size() will count the components separated by "/"
         //osgi:service/org.wso2.carbon.jndi.osgi.services.FooService/(osgi.jndi.service.name=foo/myService)
         return size() == 3;
     }
 
+    /**
+     * construct a JNDI service name with the given composite name.
+     *
+     * @param scheme of the OsgiName
+     * @return JNDI service name
+     */
     public String getJNDIServiceName(String scheme) {
         //if the JNDI service name is foo, then the URL :osgi:service/foo selects the service
         String serviceName = this.toString();
         return this.toString().substring(scheme.length() + 1, serviceName.length());
     }
 
+    /**
+     * @return first component of the Composite name
+     */
     public String getInterface() {
-        return hasInterface() ? get(1) : null;
+        return containsQuery() ? get(1) : null;
     }
 
+    /**
+     * @return second component of the Composite name
+     */
     public String getFilter() {
         return hasFilter() ? get(2) : null;
+    }
+
+    /**
+     * @return third component of the Composite name
+     */
+    public String getProtocol() {
+        return this.get(0);
+    }
+
+    private boolean isValid(String name) {
+        boolean isValid = false;
+        Enumeration<String> nameComponents = this.getAll();
+        //valid URL samples:
+        //osgi:service/query
+        //osgi:servicelist/
+        //osgi:framework/bundleContext
+        if (nameComponents.hasMoreElements()) {
+            String subContext = nameComponents.nextElement();
+            isValid = subContext.equals("osgi:service") && size() > 1 ||
+                    subContext.equals("osgi:servicelist") && (name.endsWith("/") || size() > 1) ||
+                    subContext.equals("osgi:framework") && nameComponents.hasMoreElements() &&
+                            nameComponents.nextElement().equals("bundleContext");
+        }
+        return isValid;
     }
 }

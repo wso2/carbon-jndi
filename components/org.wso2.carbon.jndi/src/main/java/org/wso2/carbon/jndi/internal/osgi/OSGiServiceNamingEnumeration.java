@@ -44,6 +44,12 @@ public class OSGiServiceNamingEnumeration implements NamingEnumeration<NameClass
      */
     protected Iterator<NameClassPair> iterator;
 
+    /**
+     * create OSGiServiceNamingEnumeration instance building the NameClassPair objects.
+     *
+     * @param bundleContext owning bundle context
+     * @param refs  servicereferences of each service of the registry
+     */
     public OSGiServiceNamingEnumeration(BundleContext bundleContext, List<ServiceReference> refs) {
         this.bundleContext = bundleContext;
         List<NameClassPair> nameClassPairList = buildNameClassPair(refs);
