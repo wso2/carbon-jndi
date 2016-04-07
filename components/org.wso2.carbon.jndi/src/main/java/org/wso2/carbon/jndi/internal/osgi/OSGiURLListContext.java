@@ -19,6 +19,7 @@
 package org.wso2.carbon.jndi.internal.osgi;
 
 import org.osgi.framework.BundleContext;
+
 import java.util.Map;
 import javax.naming.InvalidNameException;
 import javax.naming.Name;
@@ -29,6 +30,8 @@ import javax.naming.NamingException;
  * JNDI context implementation for handling osgi:servicelist queries.
  */
 public class OSGiURLListContext extends OSGiURLContext {
+
+    private Name lookupName;
 
     /**
      * Set the owning bundle context and environment variables.
@@ -41,6 +44,7 @@ public class OSGiURLListContext extends OSGiURLContext {
     public OSGiURLListContext(BundleContext callerContext, Map<String, Object> environment, Name name)
             throws InvalidNameException {
         super(callerContext, environment, name);
+        this.lookupName = name;
     }
 
     /**
@@ -64,11 +68,27 @@ public class OSGiURLListContext extends OSGiURLContext {
      */
     @Override
     public Object lookup(String name) throws NamingException {
-        OSGiName osGiName = new OSGiName(name);
+        OSGiName osGiName;
+        try {
+            osGiName = new OSGiName(name);
+        } catch (InvalidNameException exception) {
+            //may throw InvalidNameException if the lookup is for lookup(<query>)
+            //pattern (in case if customer initially call lookup("servicelist/"))
+            osGiName = (OSGiName) buildName(name);
+        }
         Object result = findService(callerContext, osGiName, env);
         if (result == null) {
             throw new NameNotFoundException(name);
         }
         return result;
+    }
+
+    private Name buildName(String query) throws InvalidNameException {
+        if (lookupName != null) {
+            for (String component : query.split("/")) {
+                lookupName.add(component);
+            }
+        }
+        return lookupName;
     }
 }
