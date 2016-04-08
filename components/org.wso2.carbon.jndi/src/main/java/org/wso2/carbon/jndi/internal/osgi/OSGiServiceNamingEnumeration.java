@@ -48,7 +48,7 @@ public class OSGiServiceNamingEnumeration implements NamingEnumeration<NameClass
      * create OSGiServiceNamingEnumeration instance building the NameClassPair objects.
      *
      * @param bundleContext owning bundle context
-     * @param refs  servicereferences of each service of the registry
+     * @param refs          servicereferences of each service of the registry
      */
     public OSGiServiceNamingEnumeration(BundleContext bundleContext, List<ServiceReference> refs) {
         this.bundleContext = bundleContext;
@@ -58,18 +58,25 @@ public class OSGiServiceNamingEnumeration implements NamingEnumeration<NameClass
 
     private List<NameClassPair> buildNameClassPair(List<ServiceReference> serviceReferencesList) {
         List<NameClassPair> nameClassPairList = new ArrayList<>();
-        //name are a string with the service.id number
+
         //A Binding object contains the name, class of the service, and the service object.
+        //name are a string with the service.id number
         serviceReferencesList.stream()
                 .filter(filterNotNullReferences)
-                .forEach(serviceReference -> nameClassPairList.add(new NameClassPair(
-                        String.valueOf(serviceReference.getProperty(Constants.SERVICE_ID)),
-                        bundleContext.getService(serviceReference).getClass().getName())));
+                .forEach(serviceReference -> nameClassPairList.add(buildNameClassPair(serviceReference)));
         return nameClassPairList;
     }
 
     private Predicate<ServiceReference> filterNotNullReferences =
             (ServiceReference reference) -> (bundleContext.getService(reference) != null);
+
+    private NameClassPair buildNameClassPair(ServiceReference serviceReference) {
+        NameClassPair nameClassPair =
+                new NameClassPair(String.valueOf(serviceReference.getProperty(Constants.SERVICE_ID)),
+                        bundleContext.getService(serviceReference).getClass().getName());
+        bundleContext.ungetService(serviceReference);
+        return nameClassPair;
+    }
 
     /**
      * Retrieves the next element in the enumeration.

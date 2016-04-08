@@ -26,26 +26,26 @@ import javax.naming.Name;
 /**
  * A composite name to represent Osgi url scheme.
  */
-public class OSGiName extends CompositeName {
+public class OSGiURL extends CompositeName {
 
     /**
      * The serial version UID
      */
     private static final long serialVersionUID = 7079733784681646165L;
 
-    public OSGiName(String name) throws InvalidNameException {
+    public OSGiURL(String name) throws InvalidNameException {
         super(name);
-        if (!isValid(name)) {
+        if (!isValid()) {
             throw new InvalidNameException("Invalid OSGi URL scheme : " + name);
         }
     }
 
-    public OSGiName(Name name) throws InvalidNameException {
+    public OSGiURL(Name name) throws InvalidNameException {
         this(name.toString());
     }
 
     /**
-     * @return true if Composite name has a interface.
+     * @return true if Composite name has a query.
      */
     public boolean containsQuery() {
         return size() > 1;
@@ -54,8 +54,8 @@ public class OSGiName extends CompositeName {
     /**
      * @return true if Composite name has a filter.
      */
-    public boolean hasFilter() {
-        //following query will result size()>3 as size() will count the components separated by "/"
+    public boolean containsFilter() {
+        //following query will result size()>3 as size() method will count the components separated by "/"
         //osgi:service/org.wso2.carbon.jndi.osgi.services.FooService/(osgi.jndi.service.name=foo/myService)
         return size() == 3;
     }
@@ -63,7 +63,7 @@ public class OSGiName extends CompositeName {
     /**
      * construct a JNDI service name with the given composite name.
      *
-     * @param scheme of the OsgiName
+     * @param scheme of the OsgiName eg: osgi:service
      * @return JNDI service name
      */
     public String getJNDIServiceName(String scheme) {
@@ -73,37 +73,36 @@ public class OSGiName extends CompositeName {
     }
 
     /**
-     * @return first component of the Composite name
-     */
-    public String getInterface() {
-        return containsQuery() ? get(1) : null;
-    }
-
-    /**
      * @return second component of the Composite name
      */
-    public String getFilter() {
-        return hasFilter() ? get(2) : null;
+    public String getServiceName() {
+        return containsQuery() ? get(1) : null;
     }
 
     /**
      * @return third component of the Composite name
      */
-    public String getProtocol() {
+    public String getFilter() {
+        return containsFilter() ? get(2) : null;
+    }
+
+    /**
+     * @return first component of the Composite name
+     */
+    public String getFirstComponent() {
+        //will return osgi:service or osgi:framework
         return this.get(0);
     }
 
-    private boolean isValid(String name) {
+    private boolean isValid() {
         boolean isValid = false;
         Enumeration<String> nameComponents = this.getAll();
-        //valid URL samples:
-        //osgi:service/query
-        //osgi:servicelist/
-        //osgi:framework/bundleContext
+        //valid URL samples are:
+        // 1. osgi:service/<query>
+        // 2. osgi:framework/bundleContext
         if (nameComponents.hasMoreElements()) {
             String subContext = nameComponents.nextElement();
             isValid = subContext.equals("osgi:service") && size() > 1 ||
-                    subContext.equals("osgi:servicelist") && (name.endsWith("/") || size() > 1) ||
                     subContext.equals("osgi:framework") && nameComponents.hasMoreElements() &&
                             nameComponents.nextElement().equals("bundleContext");
         }

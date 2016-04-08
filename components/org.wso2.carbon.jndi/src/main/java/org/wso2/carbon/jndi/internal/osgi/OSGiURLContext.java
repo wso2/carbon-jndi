@@ -40,18 +40,17 @@ import javax.naming.NamingException;
 import javax.naming.OperationNotSupportedException;
 
 /**
- * JNDI context implementation for handling osgi:service queries.
- * Sample query osgi:service/interface/filter
+ * JNDI context implementation for handling URL s with osgi: scheme.
+ * Sample queries osgi:service/<query> , osgi:framework/bundleContext.
  */
 public class OSGiURLContext implements Context {
 
     /**
-     * The environment for this context
+     * The environment for this context.
      */
     protected Map<String, Object> env;
     protected BundleContext callerContext;
     protected static final String SERVICE_PATH = "service";
-    protected static final String SERVICE_LIST_PATH = "servicelist";
     protected static final String FRAMEWORK_PATH = "framework";
     protected static final String BUNDLE_CONTEXT = "bundleContext";
     protected NameParser parser;
@@ -70,56 +69,32 @@ public class OSGiURLContext implements Context {
     }
 
     /**
-     * Initializing name parser and class properties.
-     *
-     * @param callerContext caller bundle context.
-     * @param environment   environment properties to set.
-     * @param name          lookup name
-     */
-    public OSGiURLContext(BundleContext callerContext, Map<String, Object> environment, Name name) {
-        this.callerContext = callerContext;
-        parser = new NameParserImpl();
-        env = environment;
-    }
-
-    /**
      * lookup services in the service registry.
      *
      * @param name lookup name for OSGi scheme.
-     * @return service or serviceList context based on the query.
+     * @return service or bundleContext based on the query.
      * @throws NamingException if a naming exception is encountered.
      */
     @Override
     public Object lookup(Name name) throws NamingException {
-
-        //osgi:service/<interface>/<filter>
         Object lookupResult;
-        OSGiName osgiName = new OSGiName(name);
-        String protocol = osgiName.getProtocol();
-        String interfaceName;
-        //The owning bundle is the bundle that requested the initial Context from the JNDI Context Manager
-        //service or received its Context through the InitialContext class
-        if (osgiName.containsQuery()) {
-            interfaceName = osgiName.getInterface();
-            if (FRAMEWORK_PATH.equals(getSubContext(protocol)) && BUNDLE_CONTEXT.equals(interfaceName)) {
-                //A JNDI client can also obtain the Bundle Context of the owning bundle by using the osgi: scheme
-                //namespace with the framework/bundleContext name.
-                //osgi:framework/bundleContext.
-                return callerContext;
-            } else if (SERVICE_PATH.equals(getSubContext(protocol))) {
-                //The lookup for a URL with the osgi: scheme and service path returns the service.
-                //This scheme only allows a single service to be found
-                lookupResult = findService(callerContext, osgiName, env);
-            } else if (SERVICE_LIST_PATH.equals(getSubContext(protocol))) {
-                //If this osgi:servicelist scheme is used from a lookup method then a Context object is returned
-                //instead of a service object
-                lookupResult = new OSGiURLListContext(callerContext, env, name);
-            } else {
-                lookupResult = null;
-            }
+        //Try to create an OSGi URL from the given name.
+        //if the given name is not valid, this will throw an invalidNameException
+        OSGiURL osgiURL = new OSGiURL(name);
+        String protocol = osgiURL.getFirstComponent();
+        String serviceName = osgiURL.getServiceName();
 
+        if (FRAMEWORK_PATH.equals(getSubContext(protocol)) && BUNDLE_CONTEXT.equals(serviceName)) {
+            //A JNDI client can also obtain the Bundle Context of the owning bundle by using the osgi: scheme.
+            //namespace with the framework/bundleContext query.
+            //eg: osgi:framework/bundleContext.
+            return callerContext;
+        } else if (SERVICE_PATH.equals(getSubContext(protocol))) {
+            //The lookup for a URL with the osgi: scheme and service path returns the service object.
+            //This scheme only allows a single service to be found.
+            lookupResult = findService(callerContext, osgiURL);
         } else {
-            lookupResult = new OSGiURLListContext(callerContext, env, name);
+            lookupResult = null;
         }
 
         if (lookupResult == null) {
@@ -146,45 +121,43 @@ public class OSGiURLContext implements Context {
      *
      * @param ctx        caller bundle context
      * @param lookupName composite name to lookup.
-     * @param env        environment for this context
      * @return service object from service registry.
      * @throws NamingException
      */
-    protected Object findService(BundleContext ctx, OSGiName lookupName,
-                                 Map<String, Object> env) throws NamingException {
-        String interfaceName = lookupName.getInterface();
+    protected Object findService(BundleContext ctx, OSGiURL lookupName) throws NamingException {
+        String serviceName = lookupName.getServiceName();  //this can be an interface or a JNDI-service name.
         String filter = lookupName.getFilter();
-        String serviceName = lookupName.getJNDIServiceName(lookupName.getProtocol());
+        String jndiServiceName = lookupName.getJNDIServiceName(lookupName.getFirstComponent());
 
-        //find the service with the given interface and filter.
+        //find the service with the given serviceName and filter.
         Object result;
         try {
-            result = getService(ctx, interfaceName, filter);
+            result = getService(ctx, serviceName, filter);
         } catch (NameNotFoundException e) {
             //if NameNotFoundException is occurred, the query might have used JNDI service name for the lookup.
-            filter = "(" + JNDIConstants.JNDI_SERVICENAME + "=" + serviceName + ")";
-            result = getService(ctx, null, filter);  //parse the interface=null
+            filter = "(" + JNDIConstants.JNDI_SERVICENAME + "=" + jndiServiceName + ")";
+            result = getService(ctx, null, filter);  //parse as serviceName=null
         }
 
         return result;
     }
 
-    private Object getService(BundleContext ctx, String interfaceName, String filter) throws NamingException {
+    private Object getService(BundleContext bundleContext, String serviceName, String filter) throws NamingException {
 
         try {
-            ServiceReference[] serviceReferences = ctx.getServiceReferences(interfaceName, filter);
+            ServiceReference[] serviceReferences = bundleContext.getServiceReferences(serviceName, filter);
 
             if (serviceReferences != null) {
                 for (ServiceReference reference : serviceReferences) {
-                    Object ctxService = ctx.getService(reference);
+                    Object serviceObject = bundleContext.getService(reference);
 
-                    if (ctxService != null) {
-                        return ctxService;
+                    if (serviceObject != null) {
+                        return serviceObject;
                     }
                 }
                 throw new NameNotFoundException("No service found for service references");
             } else {
-                throw new NameNotFoundException("Service reference not found with service : " + interfaceName);
+                throw new NameNotFoundException("Service reference not found with service : " + serviceName);
             }
 
         } catch (InvalidSyntaxException e) {
@@ -200,7 +173,7 @@ public class OSGiURLContext implements Context {
      * @return scheme path
      */
     protected String getSubContext(String scheme) {
-        //osgi:service or osgi:servicelist
+        //osgi:service or osgi:framework
         int index = scheme.indexOf(":");
 
         String result;
@@ -224,7 +197,7 @@ public class OSGiURLContext implements Context {
      * @throws javax.naming.NameAlreadyBoundException            if name is already bound
      * @throws javax.naming.directory.InvalidAttributesException if object did not supply all mandatory attributes
      * @throws NamingException                                   if a naming exception is encountered
-     * @throws javax.naming.OperationNotSupportedException                    if the context implementation
+     * @throws javax.naming.OperationNotSupportedException       if the context implementation
      *                                                           does not support the bind operation
      */
     @Override
@@ -644,10 +617,8 @@ public class OSGiURLContext implements Context {
      */
     @Override
     public NamingEnumeration<NameClassPair> list(String name) throws NamingException {
-        OSGiName osgiName = new OSGiName(name);
-        String jndiServiceName = osgiName.getJNDIServiceName(osgiName.getProtocol());
-        List<ServiceReference> serviceReferences = getServiceReferences(callerContext,
-                osgiName.getInterface(), osgiName.getFilter(), jndiServiceName);
+        OSGiURL osgiURL = new OSGiURL(name);
+        List<ServiceReference> serviceReferences = getServiceReferences(osgiURL);
         return new OSGiServiceNamingEnumeration(callerContext, serviceReferences);
     }
 
@@ -672,23 +643,24 @@ public class OSGiURLContext implements Context {
      */
     @Override
     public NamingEnumeration<Binding> listBindings(String name) throws NamingException {
-        OSGiName osgiName = new OSGiName(name);
-        String jndiServiceName = osgiName.getJNDIServiceName(osgiName.getProtocol());
-        List<ServiceReference> serviceReferences = getServiceReferences(callerContext,
-                osgiName.getInterface(), osgiName.getFilter(), jndiServiceName);
+        OSGiURL osgiURL = new OSGiURL(name);
+        ;
+        List<ServiceReference> serviceReferences = getServiceReferences(osgiURL);
         return new OSGiServiceBindingsEnumeration(callerContext, serviceReferences);
     }
 
-    private List<ServiceReference> getServiceReferences(BundleContext ctx, String interfaceName,
-                                                        String filter, String serviceName) throws NamingException {
+    private List<ServiceReference> getServiceReferences(OSGiURL osGiURL) throws NamingException {
         ServiceReference[] refs;
+        String serviceName = osGiURL.getServiceName();
+        String filter = osGiURL.getFilter();
 
         try {
-            refs = ctx.getServiceReferences(interfaceName, filter);
+            refs = callerContext.getServiceReferences(serviceName, filter);
 
-            if (refs == null || refs.length == 0) {
-                refs = ctx.getServiceReferences((String) null, "(" + JNDIConstants.JNDI_SERVICENAME + "="
-                        + serviceName + ")");
+            if (refs == null) {
+                String jndiServiceName = osGiURL.getJNDIServiceName(osGiURL.getFirstComponent());
+                refs = callerContext.getServiceReferences((String) null, "(" + JNDIConstants.JNDI_SERVICENAME + "="
+                        + jndiServiceName + ")");
             }
         } catch (InvalidSyntaxException e) {
             throw new NamingException("Error loading services from service registry with filter: " + e.getFilter());
