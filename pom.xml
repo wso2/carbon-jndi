@@ -36,6 +36,7 @@
         <module>features/org.wso2.carbon.jndi.feature</module>
         <module>samples/traditional-client-model</module>
         <module>samples/osgi-jndi-service</module>
+        <module>samples/jndi-osgi-url-scheme</module>
     </modules>
 
     <build>
