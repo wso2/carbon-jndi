@@ -52,11 +52,12 @@ public class OSGiURLContextFactory implements ObjectFactory {
      *                   while attempting to create an object, and no other object factories are
      *                   to be tried.
      */
+    @SuppressWarnings("unchecked")
     @Override
     public Object getObjectInstance(Object obj,
                                     Name name,
                                     Context nameCtx,
                                     Hashtable<?, ?> environment) throws Exception {
-        return new OSGiURLContext(callerContext, environment);
+        return new OSGiURLContext(callerContext, (Hashtable<String, Object>) environment);
     }
 }

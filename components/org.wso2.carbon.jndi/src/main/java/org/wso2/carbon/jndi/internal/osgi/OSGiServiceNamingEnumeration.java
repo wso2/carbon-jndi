@@ -22,10 +22,9 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javax.naming.NameClassPair;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -40,9 +39,13 @@ public class OSGiServiceNamingEnumeration implements NamingEnumeration<NameClass
      */
     private BundleContext bundleContext;
     /**
-     * Underlying enumeration.
+     * Maintain current position of the references.
      */
-    protected Iterator<NameClassPair> iterator;
+    private int currentIndex;
+    /**
+     * Maintains list of bindings.
+     */
+    private List<NameClassPair> nameClassPairList;
 
     /**
      * create OSGiServiceNamingEnumeration instance building the NameClassPair objects.
@@ -52,23 +55,20 @@ public class OSGiServiceNamingEnumeration implements NamingEnumeration<NameClass
      */
     public OSGiServiceNamingEnumeration(BundleContext bundleContext, List<ServiceReference> refs) {
         this.bundleContext = bundleContext;
-        List<NameClassPair> nameClassPairList = buildNameClassPair(refs);
-        iterator = nameClassPairList.iterator();
+        nameClassPairList = buildNameClassPair(refs);
     }
 
     private List<NameClassPair> buildNameClassPair(List<ServiceReference> serviceReferencesList) {
-        List<NameClassPair> nameClassPairList = new ArrayList<>();
-
         //A Binding object contains the name, class of the service, and the service object.
         //name are a string with the service.id number
-        serviceReferencesList.stream()
-                .filter(filterNotNullReferences)
-                .forEach(serviceReference -> nameClassPairList.add(buildNameClassPair(serviceReference)));
-        return nameClassPairList;
-    }
+        Predicate<ServiceReference> filterNotNullReferences =
+                (ServiceReference reference) -> (bundleContext.getService(reference) != null);
 
-    private Predicate<ServiceReference> filterNotNullReferences =
-            (ServiceReference reference) -> (bundleContext.getService(reference) != null);
+        return serviceReferencesList.stream()
+                .filter(filterNotNullReferences)
+                .map(this::buildNameClassPair)
+                .collect(Collectors.toList());
+    }
 
     private NameClassPair buildNameClassPair(ServiceReference serviceReference) {
         NameClassPair nameClassPair =
@@ -91,7 +91,7 @@ public class OSGiServiceNamingEnumeration implements NamingEnumeration<NameClass
      */
     @Override
     public boolean hasMore() throws NamingException {
-        return iterator.hasNext();
+        return hasMoreElements();
     }
 
     @Override
@@ -103,7 +103,7 @@ public class OSGiServiceNamingEnumeration implements NamingEnumeration<NameClass
      */
     @Override
     public boolean hasMoreElements() {
-        return iterator.hasNext();
+        return currentIndex < nameClassPairList.size();
     }
 
     /**
@@ -112,6 +112,6 @@ public class OSGiServiceNamingEnumeration implements NamingEnumeration<NameClass
      */
     @Override
     public NameClassPair nextElement() {
-        return iterator.next();
+        return nameClassPairList.get(currentIndex++);
     }
 }

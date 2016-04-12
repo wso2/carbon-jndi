@@ -23,12 +23,10 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.jndi.JNDIConstants;
 import org.wso2.carbon.jndi.internal.util.NameParserImpl;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import javax.naming.Binding;
 import javax.naming.Context;
 import javax.naming.Name;
@@ -41,14 +39,14 @@ import javax.naming.OperationNotSupportedException;
 
 /**
  * JNDI context implementation for handling URL s with osgi: scheme.
- * Sample queries osgi:service/<query> , osgi:framework/bundleContext.
+ * Sample queries osgi:service/query , osgi:framework/bundleContext.
  */
 public class OSGiURLContext implements Context {
 
     /**
      * The environment for this context.
      */
-    protected Map<String, Object> env;
+    protected Hashtable<String, Object> env;
     protected BundleContext callerContext;
     protected static final String SERVICE_PATH = "service";
     protected static final String FRAMEWORK_PATH = "framework";
@@ -60,12 +58,19 @@ public class OSGiURLContext implements Context {
      *
      * @param callerContext caller bundle context.
      * @param environment   environment properties to set.
+     * @throws NamingException  If no context can be created for the given environment.
      */
-    public OSGiURLContext(BundleContext callerContext, Hashtable<?, ?> environment) {
+    public OSGiURLContext(BundleContext callerContext, Hashtable<String, Object> environment) throws NamingException {
         this.callerContext = callerContext;
         parser = new NameParserImpl();
-        env = new HashMap<>();
-        env.putAll((Map<? extends String, ?>) environment);
+        env = new Hashtable<>();
+        if (environment != null) {
+            Enumeration<String> envEntries = environment.keys();
+            while (envEntries.hasMoreElements()) {
+                String entryName = envEntries.nextElement();
+                addToEnvironment(entryName, environment.get(entryName));
+            }
+        }
     }
 
     /**
@@ -122,19 +127,19 @@ public class OSGiURLContext implements Context {
      * @param ctx        caller bundle context
      * @param lookupName composite name to lookup.
      * @return service object from service registry.
-     * @throws NamingException
+     * @throws NamingException if No service found with the given URL.
      */
     protected Object findService(BundleContext ctx, OSGiURL lookupName) throws NamingException {
         String serviceName = lookupName.getServiceName();  //this can be an interface or a JNDI-service name.
-        String filter = lookupName.getFilter();
-        String jndiServiceName = lookupName.getJNDIServiceName(lookupName.getFirstComponent());
-
+        String filter = lookupName.getFilter();   //osgi:service/foo/bar/myservice
+        //osgi:service/org.wso2.service.Deployer/(serviceId=56)
         //find the service with the given serviceName and filter.
         Object result;
         try {
             result = getService(ctx, serviceName, filter);
         } catch (NameNotFoundException e) {
             //if NameNotFoundException is occurred, the query might have used JNDI service name for the lookup.
+            String jndiServiceName = lookupName.getJNDIServiceName();
             filter = "(" + JNDIConstants.JNDI_SERVICENAME + "=" + jndiServiceName + ")";
             result = getService(ctx, null, filter);  //parse as serviceName=null
         }
@@ -644,32 +649,43 @@ public class OSGiURLContext implements Context {
     @Override
     public NamingEnumeration<Binding> listBindings(String name) throws NamingException {
         OSGiURL osgiURL = new OSGiURL(name);
-        ;
         List<ServiceReference> serviceReferences = getServiceReferences(osgiURL);
         return new OSGiServiceBindingsEnumeration(callerContext, serviceReferences);
     }
 
-    private List<ServiceReference> getServiceReferences(OSGiURL osGiURL) throws NamingException {
+    private List<ServiceReference> getServiceReferences(OSGiURL osgiURL) throws NamingException {
         ServiceReference[] refs;
-        String serviceName = osGiURL.getServiceName();
-        String filter = osGiURL.getFilter();
+        String serviceName = osgiURL.getServiceName();
+        String filter = osgiURL.getFilter();
 
         try {
             refs = callerContext.getServiceReferences(serviceName, filter);
-
             if (refs == null) {
-                String jndiServiceName = osGiURL.getJNDIServiceName(osGiURL.getFirstComponent());
-                refs = callerContext.getServiceReferences((String) null, "(" + JNDIConstants.JNDI_SERVICENAME + "="
-                        + jndiServiceName + ")");
+                refs = getServiceReferencesForJNDIServiceName(osgiURL);
+            }
+        } catch (InvalidSyntaxException e) {
+            // If we get an invalid syntax exception this may dues for queries :- osgi:service/foo/myService
+            // (where "foo/myService" is the
+            // osgi.jndi.service.name and this may read filter=myService which causes an invalid syntax exception)
+            refs = getServiceReferencesForJNDIServiceName(osgiURL);
+        }
+
+        return Arrays.asList(refs);
+    }
+
+    private ServiceReference[] getServiceReferencesForJNDIServiceName(OSGiURL osgiURL) throws NamingException {
+        String jndiServiceName = osgiURL.getJNDIServiceName();
+        ServiceReference[] refs;
+        try {
+            refs = callerContext.getServiceReferences((String) null, "(" + JNDIConstants.JNDI_SERVICENAME + "="
+                    + jndiServiceName + ")");
+            if (refs == null) {
+                throw new NameNotFoundException("No Service Registered with the given URL " + osgiURL.toString());
             }
         } catch (InvalidSyntaxException e) {
             throw new NamingException("Error loading services from service registry with filter: " + e.getFilter());
         }
-
-        if (refs != null) {
-            return Arrays.asList(refs);
-        }
-        return new ArrayList<>();
+        return refs;
     }
 
 }

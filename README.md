@@ -76,7 +76,7 @@ public class ActivatorComponent {
 ### OSGI URL Scheme
 
 An OSGI URL scheme is available for users to access services in service registry. This URL scheme can have the format
-    osgi:service/<interface>/<filter>
+    osgi:service/<query> or osgi:framework/bundleContext
 No spaces are allowed between the terms. Thi OSGi URL scheme can be used to perform lookup of a OSGi service using the
 interface and the filter. 
 Following is an example lookup for an OSGi service using JNDI
@@ -99,13 +99,13 @@ Above lookup is equal to accessing the OSGi service from bundle context as below
         ServiceReference serviceReference = ctx.getServiceReference("org.wso2.carbon.jndi.osgi.services.FooService", filter);
         Object ctxService = ctx.getService(reference);
 ```
-Multiple services can be obtained using OSGi scheme with "servicelist" path, which will return a Context object.
+If Multiple services were registered with the same Service class, all services can be obtained calling listBindings method.
 Calling the listBindings method will produce a NamingEnumeration object that provides Binding objects. 
 A Binding object contains the name, class of the service, and the service object. 
 
 ```java
         NamingEnumeration<Binding> listBindings =
-                context.listBindings("osgi:servicelist/org.wso2.carbon.jndi.osgi.services.FooService");
+                context.listBindings("osgi:service/org.wso2.carbon.jndi.osgi.services.FooService");
 
         if(listBindings.hasMoreElements()) {
 

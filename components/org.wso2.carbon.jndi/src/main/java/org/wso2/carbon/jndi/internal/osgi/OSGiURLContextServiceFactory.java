@@ -25,7 +25,7 @@ import org.osgi.framework.ServiceRegistration;
 /**
  * A {@code ServiceFactory} which supplies instance of the OSGiURLContextFactory.
  */
-public class OSGiUrlContextServiceFactory implements ServiceFactory<OSGiURLContextFactory> {
+public class OSGiURLContextServiceFactory implements ServiceFactory<OSGiURLContextFactory> {
 
     @Override
     public OSGiURLContextFactory getService(Bundle bundle,
@@ -35,7 +35,7 @@ public class OSGiUrlContextServiceFactory implements ServiceFactory<OSGiURLConte
 
     @Override
     public void ungetService(Bundle bundle, ServiceRegistration<OSGiURLContextFactory> serviceRegistration,
-                             OSGiURLContextFactory osGiURLContextFactory) {
+                             OSGiURLContextFactory osgiURLContextFactory) {
 
     }
 }

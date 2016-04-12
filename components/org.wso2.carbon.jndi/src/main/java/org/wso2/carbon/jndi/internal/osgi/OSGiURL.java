@@ -19,9 +19,12 @@
 package org.wso2.carbon.jndi.internal.osgi;
 
 import java.util.Enumeration;
+import java.util.Optional;
+import java.util.function.Predicate;
 import javax.naming.CompositeName;
 import javax.naming.InvalidNameException;
 import javax.naming.Name;
+import javax.naming.OperationNotSupportedException;
 
 /**
  * A composite name to represent Osgi url scheme.
@@ -33,14 +36,14 @@ public class OSGiURL extends CompositeName {
      */
     private static final long serialVersionUID = 7079733784681646165L;
 
-    public OSGiURL(String name) throws InvalidNameException {
-        super(name);
+    public OSGiURL(String url) throws InvalidNameException, OperationNotSupportedException {
+        super(url);
         if (!isValid()) {
-            throw new InvalidNameException("Invalid OSGi URL scheme : " + name);
+            throw new InvalidNameException("Invalid OSGi URL scheme : " + url);
         }
     }
 
-    public OSGiURL(Name name) throws InvalidNameException {
+    public OSGiURL(Name name) throws InvalidNameException, OperationNotSupportedException {
         this(name.toString());
     }
 
@@ -63,13 +66,12 @@ public class OSGiURL extends CompositeName {
     /**
      * construct a JNDI service name with the given composite name.
      *
-     * @param scheme of the OsgiName eg: osgi:service
      * @return JNDI service name
      */
-    public String getJNDIServiceName(String scheme) {
+    public String getJNDIServiceName() {
         //if the JNDI service name is foo, then the URL :osgi:service/foo selects the service
-        String serviceName = this.toString();
-        return this.toString().substring(scheme.length() + 1, serviceName.length());
+        String serviceName = this.toString(); //osgi:service
+        return serviceName.substring(this.getFirstComponent().length() + 1);
     }
 
     /**
@@ -94,17 +96,26 @@ public class OSGiURL extends CompositeName {
         return this.get(0);
     }
 
-    private boolean isValid() {
+    private boolean isValid() throws OperationNotSupportedException {
         boolean isValid = false;
         Enumeration<String> nameComponents = this.getAll();
         //valid URL samples are:
         // 1. osgi:service/<query>
         // 2. osgi:framework/bundleContext
         if (nameComponents.hasMoreElements()) {
-            String subContext = nameComponents.nextElement();
-            isValid = subContext.equals("osgi:service") && size() > 1 ||
-                    subContext.equals("osgi:framework") && nameComponents.hasMoreElements() &&
-                            nameComponents.nextElement().equals("bundleContext");
+            Predicate<String> osgiServiceFilter = servicePathSubContext ->
+                    "osgi:service".equals(servicePathSubContext) && size() > 1;
+            Predicate<String> osgiFrameworkFilter = frameworkPathSubContext ->
+                    "osgi:framework".equals(frameworkPathSubContext) &&
+                    nameComponents.hasMoreElements() &&
+                    "bundleContext".equals(nameComponents.nextElement());
+            Predicate<String> orFilter = osgiFrameworkFilter.or(osgiServiceFilter);
+            Optional<String> subContextOptional = Optional.ofNullable(nameComponents.nextElement());
+            isValid = subContextOptional.filter(orFilter).isPresent();
+
+            if (!isValid && subContextOptional.filter("osgi:servicelist"::equals).isPresent()) {
+                throw new OperationNotSupportedException("Unsupported operation with URL : " + this.toString());
+            }
         }
         return isValid;
     }
