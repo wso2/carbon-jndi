@@ -41,7 +41,7 @@ public class OSGiServiceNamingEnumeration implements NamingEnumeration<NameClass
     /**
      * Maintain current position of the references.
      */
-    private int currentIndex;
+    private int currentIndex = 0;
     /**
      * Maintains list of bindings.
      */

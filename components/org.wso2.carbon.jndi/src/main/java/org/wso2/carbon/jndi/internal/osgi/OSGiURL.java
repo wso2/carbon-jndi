@@ -78,14 +78,16 @@ public class OSGiURL extends CompositeName {
      * @return second component of the Composite name
      */
     public String getServiceName() {
-        return containsQuery() ? get(1) : null;
+        int secondComponentIndex = 1;
+        return containsQuery() ? get(secondComponentIndex) : null;
     }
 
     /**
      * @return third component of the Composite name
      */
     public String getFilter() {
-        return containsFilter() ? get(2) : null;
+        int thirdComponentIndex = 2;
+        return containsFilter() ? get(thirdComponentIndex) : null;
     }
 
     /**
@@ -93,7 +95,8 @@ public class OSGiURL extends CompositeName {
      */
     public String getFirstComponent() {
         //will return osgi:service or osgi:framework
-        return this.get(0);
+        int firstComponentIndex = 0;
+        return this.get(firstComponentIndex);
     }
 
     private boolean isValid() throws OperationNotSupportedException {
