@@ -23,91 +23,163 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.jndi.JNDIConstants;
 import org.wso2.carbon.jndi.internal.util.NameParserImpl;
 
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Map;
+import java.util.List;
+import javax.naming.Binding;
 import javax.naming.Context;
 import javax.naming.Name;
+import javax.naming.NameClassPair;
+import javax.naming.NameNotFoundException;
 import javax.naming.NameParser;
+import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.OperationNotSupportedException;
 
 /**
- * Abstract class for common method implementations for
- * OSGiUrlContext and OSGIUrlListContext.
+ * JNDI context implementation for handling URL s with osgi: scheme.
+ * Sample queries osgi:service/query , osgi:framework/bundleContext.
  */
-public abstract class AbstractOSGiUrlContext implements Context {
+public class OSGiURLContext implements Context {
 
     /**
-     * The environment for this context
+     * The environment for this context.
      */
-    protected Map<String, Object> env;
+    protected Hashtable<String, Object> env;
     protected BundleContext callerContext;
-    public static final String SERVICE_PATH = "service";
-    public static final String SERVICE_LIST_PATH = "servicelist";
-    public static final String FRAMEWORK_PATH = "framework";
-    public static final String BUNDLE_CONTEXT = "bundleContext";
-    NameParser parser;
+    protected static final String SERVICE_PATH = "service";
+    protected static final String FRAMEWORK_PATH = "framework";
+    protected static final String BUNDLE_CONTEXT = "bundleContext";
+    protected NameParser parser;
 
-    public AbstractOSGiUrlContext(BundleContext callerContext, Hashtable<?, ?> environment) {
+    /**
+     * Initializing name parser and class properties.
+     *
+     * @param callerContext caller bundle context.
+     * @param environment   environment properties to set.
+     * @throws NamingException  If no context can be created for the given environment.
+     */
+    public OSGiURLContext(BundleContext callerContext, Hashtable<String, Object> environment) throws NamingException {
         this.callerContext = callerContext;
         parser = new NameParserImpl();
-        env = new HashMap<>();
-        env.putAll((Map<? extends String, ?>) environment);
+        env = new Hashtable<>();
+        if (environment != null) {
+            Enumeration<String> envEntries = environment.keys();
+            while (envEntries.hasMoreElements()) {
+                String entryName = envEntries.nextElement();
+                addToEnvironment(entryName, environment.get(entryName));
+            }
+        }
     }
 
-    public AbstractOSGiUrlContext(BundleContext callerContext, Map<String, Object> environment, Name validName) {
-        this.callerContext = callerContext;
-        parser = new NameParserImpl();
-        env = environment;
+    /**
+     * lookup services in the service registry.
+     *
+     * @param name lookup name for OSGi scheme.
+     * @return service or bundleContext based on the query.
+     * @throws NamingException if a naming exception is encountered.
+     */
+    @Override
+    public Object lookup(Name name) throws NamingException {
+        Object lookupResult;
+        //Try to create an OSGi URL from the given name.
+        //if the given name is not valid, this will throw an invalidNameException
+        OSGiURL osgiURL = new OSGiURL(name);
+        String protocol = osgiURL.getFirstComponent();
+        String serviceName = osgiURL.getServiceName();
+
+        if (FRAMEWORK_PATH.equals(getSubContext(protocol)) && BUNDLE_CONTEXT.equals(serviceName)) {
+            //A JNDI client can also obtain the Bundle Context of the owning bundle by using the osgi: scheme.
+            //namespace with the framework/bundleContext query.
+            //eg: osgi:framework/bundleContext.
+            return callerContext;
+        } else if (SERVICE_PATH.equals(getSubContext(protocol))) {
+            //The lookup for a URL with the osgi: scheme and service path returns the service object.
+            //This scheme only allows a single service to be found.
+            lookupResult = findService(callerContext, osgiURL);
+        } else {
+            lookupResult = null;
+        }
+
+        if (lookupResult == null) {
+            throw new NameNotFoundException(name.toString());
+        }
+
+        return lookupResult;
     }
 
-    protected Object findService(BundleContext ctx, OSGiName lookupName,
-                                 Map<String, Object> env) throws NamingException {
-        String interfaceName = lookupName.getInterface();
-        String filter = lookupName.getFilter();
-        String serviceName = lookupName.getJNDIServiceName(lookupName.get(0));
+    /**
+     * Retrieves the named object.
+     *
+     * @param name the name of the object to look up
+     * @return the object bound to <tt>name</tt>
+     * @throws NamingException if a jndi exception is encountered
+     */
+    @Override
+    public Object lookup(String name) throws NamingException {
+        return lookup(parser.parse(name));
+    }
 
-        //find the service with the given interface and filter.
+    /**
+     * Access service from service registry for given interface name and filter.
+     *
+     * @param ctx        caller bundle context
+     * @param lookupName composite name to lookup.
+     * @return service object from service registry.
+     * @throws NamingException if No service found with the given URL.
+     */
+    protected Object findService(BundleContext ctx, OSGiURL lookupName) throws NamingException {
+        String serviceName = lookupName.getServiceName();  //this can be an interface or a JNDI-service name.
+        String filter = lookupName.getFilter();   //osgi:service/foo/bar/myservice
+        //osgi:service/org.wso2.service.Deployer/(serviceId=56)
+        //find the service with the given serviceName and filter.
         Object result;
-        result = getService(ctx, interfaceName, filter);
-
-        //if result is null, the query might have used JNDI service name for the lookup.
-        if (result == null) {
-            filter = "(" + JNDIConstants.JNDI_SERVICENAME + "=" + serviceName + ')';
-            result = getService(ctx, null, filter);  //parse the interface=null
+        try {
+            result = getService(ctx, serviceName, filter);
+        } catch (NameNotFoundException e) {
+            //if NameNotFoundException is occurred, the query might have used JNDI service name for the lookup.
+            String jndiServiceName = lookupName.getJNDIServiceName();
+            filter = "(" + JNDIConstants.JNDI_SERVICENAME + "=" + jndiServiceName + ")";
+            result = getService(ctx, null, filter);  //parse as serviceName=null
         }
 
         return result;
     }
 
-    private Object getService(BundleContext ctx, String interfaceName, String filter)
-            throws NamingException {
+    private Object getService(BundleContext bundleContext, String serviceName, String filter) throws NamingException {
 
         try {
-            ServiceReference[] serviceReferences = ctx.getServiceReferences(interfaceName, filter);
+            ServiceReference[] serviceReferences = bundleContext.getServiceReferences(serviceName, filter);
 
             if (serviceReferences != null) {
                 for (ServiceReference reference : serviceReferences) {
-                    Object ctxService = ctx.getService(reference);
+                    Object serviceObject = bundleContext.getService(reference);
 
-                    if (ctxService != null) {
-                        return ctxService;
+                    if (serviceObject != null) {
+                        return serviceObject;
                     }
                 }
+                throw new NameNotFoundException("No service found for service references");
+            } else {
+                throw new NameNotFoundException("Service reference not found with service : " + serviceName);
             }
 
         } catch (InvalidSyntaxException e) {
             // If we get an invalid syntax exception we just ignore and return
-            // a null. eg: for queries :- osgi:service/foo/myService (where "foo/myService" is the
+            // a NameNotFoundException. eg: for queries :- osgi:service/foo/myService (where "foo/myService" is the
             // osgi.jndi.service.name and this may read filter=myService which causes an invalid syntax exception)
+            throw new NameNotFoundException("Could not find matching service from registry with filter : " + filter);
         }
-        return null;
     }
 
-    protected String getSchemePath(String scheme) {
-        //osgi:service or osgi:servicelist
-        int index = scheme.indexOf(':');
+    /**
+     * @param scheme first component of the osgi query (eg: osgi:service)
+     * @return scheme path
+     */
+    protected String getSubContext(String scheme) {
+        //osgi:service or osgi:framework
+        int index = scheme.indexOf(":");
 
         String result;
 
@@ -125,16 +197,13 @@ public abstract class AbstractOSGiUrlContext implements Context {
      * All intermediate contexts and the target context (that named by all
      * but terminal atomic component of the name) must already exist.
      *
-     * @param name
-     *          the name to bind; may not be empty
-     * @param obj
-     *          the object to bind; possibly null
-     * @throws javax.naming.NameAlreadyBoundException if name is already bound
-     * @throws  javax.naming.directory.InvalidAttributesException
-     *          if object did not supply all mandatory attributes
-     * @throws  NamingException if a naming exception is encountered
-     * @throws  OperationNotSupportedException if the context implementation
-     *          does not support the bind operation
+     * @param name the name to bind; may not be empty
+     * @param obj  the object to bind; possibly null
+     * @throws javax.naming.NameAlreadyBoundException            if name is already bound
+     * @throws javax.naming.directory.InvalidAttributesException if object did not supply all mandatory attributes
+     * @throws NamingException                                   if a naming exception is encountered
+     * @throws javax.naming.OperationNotSupportedException       if the context implementation
+     *                                                           does not support the bind operation
      */
     @Override
     public void bind(Name name, Object obj) throws NamingException {
@@ -144,13 +213,13 @@ public abstract class AbstractOSGiUrlContext implements Context {
     /**
      * Binds a name to an object.
      *
-     * @param name   the name to bind; may not be empty
-     * @param obj    the object to bind; possibly null
-     * @throws javax.naming.NameAlreadyBoundException  if name is already bound
+     * @param name the name to bind; may not be empty
+     * @param obj  the object to bind; possibly null
+     * @throws javax.naming.NameAlreadyBoundException            if name is already bound
      * @throws javax.naming.directory.InvalidAttributesException if object  did not supply all mandatory attributes
-     * @throws NamingException  if a jndi exception is encountered
-     * @throws  OperationNotSupportedException if the context implementation
-     *          does not support the bind operation
+     * @throws NamingException                                   if a jndi exception is encountered
+     * @throws OperationNotSupportedException                    if the context implementation
+     *                                                           does not support the bind operation
      */
     @Override
     public void bind(String name, Object obj) throws NamingException {
@@ -171,8 +240,8 @@ public abstract class AbstractOSGiUrlContext implements Context {
      * @throws javax.naming.directory.InvalidAttributesException if object
      *                                                           did not supply all mandatory attributes
      * @throws NamingException                                   if a jndi exception is encountered
-     * @throws  OperationNotSupportedException if the context implementation
-     *          does not support the rebind operation
+     * @throws OperationNotSupportedException                    if the context implementation
+     *                                                           does not support the rebind operation
      */
     @Override
     public void rebind(Name name, Object obj) throws NamingException {
@@ -187,8 +256,8 @@ public abstract class AbstractOSGiUrlContext implements Context {
      * @throws javax.naming.directory.InvalidAttributesException if object
      *                                                           did not supply all mandatory attributes
      * @throws NamingException                                   if a jndi exception is encountered
-     * @throws  OperationNotSupportedException if the context implementation
-     *          does not support the rebind operation
+     * @throws OperationNotSupportedException                    if the context implementation
+     *                                                           does not support the rebind operation
      */
     @Override
     public void rebind(String name, Object obj) throws NamingException {
@@ -206,8 +275,8 @@ public abstract class AbstractOSGiUrlContext implements Context {
      *
      * @param name the name to bind; may not be empty
      * @throws javax.naming.OperationNotSupportedException if an intermediate context does not
-     *                               exist
-     * @throws NamingException       if a jndi exception is encountered
+     *                                                     exist
+     * @throws NamingException                             if a jndi exception is encountered
      */
     @Override
     public void unbind(Name name) throws NamingException {
@@ -218,11 +287,11 @@ public abstract class AbstractOSGiUrlContext implements Context {
      * Unbinds the named object.
      *
      * @param name the name to bind; may not be empty
-     * @throws javax.naming.NameNotFoundException if an intermediate context does not
-     *                               exist
-     * @throws NamingException       if a jndi exception is encountered
+     * @throws javax.naming.NameNotFoundException          if an intermediate context does not
+     *                                                     exist
+     * @throws NamingException                             if a jndi exception is encountered
      * @throws javax.naming.OperationNotSupportedException is the context implementation does
-     *                               support the operation
+     *                                                     support the operation
      */
     @Override
     public void unbind(String name) throws NamingException {
@@ -237,10 +306,10 @@ public abstract class AbstractOSGiUrlContext implements Context {
      *
      * @param oldName the name of the existing binding; may not be empty
      * @param newName the name of the new binding; may not be empty
-     * @throws javax.naming.NameAlreadyBoundException if newName is already bound
-     * @throws NamingException           if a jndi exception is encountered
+     * @throws javax.naming.NameAlreadyBoundException      if newName is already bound
+     * @throws NamingException                             if a jndi exception is encountered
      * @throws javax.naming.OperationNotSupportedException is the context implementation does
-     *                               support the operation
+     *                                                     support the operation
      */
     @Override
     public void rename(Name oldName, Name newName) throws NamingException {
@@ -253,10 +322,10 @@ public abstract class AbstractOSGiUrlContext implements Context {
      *
      * @param oldName the name of the existing binding; may not be empty
      * @param newName the name of the new binding; may not be empty
-     * @throws javax.naming.NameAlreadyBoundException if newName is already bound
-     * @throws NamingException           if a jndi exception is encountered
+     * @throws javax.naming.NameAlreadyBoundException      if newName is already bound
+     * @throws NamingException                             if a jndi exception is encountered
      * @throws javax.naming.OperationNotSupportedException is the context implementation does
-     *                               support the operation
+     *                                                     support the operation
      */
     @Override
     public void rename(String oldName, String newName) throws NamingException {
@@ -283,12 +352,12 @@ public abstract class AbstractOSGiUrlContext implements Context {
      * the foreign context's "native" jndi system.
      *
      * @param name the name of the context to be destroyed; may not be empty
-     * @throws javax.naming.NameNotFoundException if an intermediate context does not
-     *                               exist
-     * @throws javax.naming.NotContextException   if the name is bound but does not name
-     *                               a context, or does not name a context of the appropriate type
+     * @throws javax.naming.NameNotFoundException          if an intermediate context does not
+     *                                                     exist
+     * @throws javax.naming.NotContextException            if the name is bound but does not name
+     *                                                     a context, or does not name a context of the appropriate type
      * @throws javax.naming.OperationNotSupportedException is the context implementation does
-     *                               support the operation
+     *                                                     support the operation
      */
     @Override
     public void destroySubcontext(Name name) throws NamingException {
@@ -299,12 +368,12 @@ public abstract class AbstractOSGiUrlContext implements Context {
      * Destroys the named context and removes it from the namespace.
      *
      * @param name the name of the context to be destroyed; may not be empty
-     * @throws javax.naming.NameNotFoundException if an intermediate context does not
-     *                               exist
-     * @throws javax.naming.NotContextException   if the name is bound but does not name
-     *                               a context, or does not name a context of the appropriate type
+     * @throws javax.naming.NameNotFoundException          if an intermediate context does not
+     *                                                     exist
+     * @throws javax.naming.NotContextException            if the name is bound but does not name
+     *                                                     a context, or does not name a context of the appropriate type
      * @throws javax.naming.OperationNotSupportedException is the context implementation does
-     *                               support the operation
+     *                                                     support the operation
      */
     @Override
     public void destroySubcontext(String name) throws NamingException {
@@ -319,13 +388,13 @@ public abstract class AbstractOSGiUrlContext implements Context {
      *
      * @param name the name of the context to create; may not be empty
      * @return the newly created context
-     * @throws javax.naming.NameAlreadyBoundException                         if name is already bound
+     * @throws javax.naming.NameAlreadyBoundException            if name is already bound
      * @throws javax.naming.directory.InvalidAttributesException if creation
      *                                                           of the sub-context requires specification of
      *                                                           mandatory attributes
      * @throws NamingException                                   if a jndi exception is encountered
-     * @throws javax.naming.OperationNotSupportedException is the context implementation does
-     *                               support the operation
+     * @throws javax.naming.OperationNotSupportedException       is the context implementation does
+     *                                                           support the operation
      */
     @Override
     public Context createSubcontext(Name name) throws NamingException {
@@ -337,13 +406,13 @@ public abstract class AbstractOSGiUrlContext implements Context {
      *
      * @param name the name of the context to create; may not be empty
      * @return the newly created context
-     * @throws javax.naming.NameAlreadyBoundException                         if name is already bound
+     * @throws javax.naming.NameAlreadyBoundException            if name is already bound
      * @throws javax.naming.directory.InvalidAttributesException if creation
      *                                                           of the sub-context requires specification of
      *                                                           mandatory attributes
      * @throws NamingException                                   if a jndi exception is encountered
-     * @throws javax.naming.OperationNotSupportedException is the context implementation does
-     *                               support the operation
+     * @throws javax.naming.OperationNotSupportedException       is the context implementation does
+     *                                                           support the operation
      */
     @Override
     public Context createSubcontext(String name) throws NamingException {
@@ -358,9 +427,9 @@ public abstract class AbstractOSGiUrlContext implements Context {
      * @param name the name of the object to look up
      * @return the object bound to name, not following the terminal link
      * (if any).
-     * @throws NamingException if a jndi exception is encountered
+     * @throws NamingException                             if a jndi exception is encountered
      * @throws javax.naming.OperationNotSupportedException is the context implementation does
-     *                               support the operation
+     *                                                     support the operation
      */
     @Override
     public Object lookupLink(Name name) throws NamingException {
@@ -374,9 +443,9 @@ public abstract class AbstractOSGiUrlContext implements Context {
      * @param name the name of the object to look up
      * @return the object bound to name, not following the terminal link
      * (if any).
-     * @throws NamingException if a jndi exception is encountered
+     * @throws NamingException                             if a jndi exception is encountered
      * @throws javax.naming.OperationNotSupportedException is the context implementation does
-     *                               support the operation
+     *                                                     support the operation
      */
     @Override
     public Object lookupLink(String name) throws NamingException {
@@ -528,6 +597,95 @@ public abstract class AbstractOSGiUrlContext implements Context {
     @Override
     public String composeName(String name, String prefix) throws NamingException {
         return prefix + "/" + name;
+    }
+
+    /**
+     * provides Naming Enumeration object which provides a NameClassPair object.
+     * useful in cases where a client wishes to iterate over the available services without actually getting them.
+     *
+     * @param name name of the context to list
+     * @return Naming Enumeration object which provides a NameClassPair
+     * @throws NamingException if a jndi exception is encountered
+     */
+    @Override
+    public NamingEnumeration<NameClassPair> list(Name name) throws NamingException {
+        return list(name.toString());
+    }
+
+    /**
+     * provides Naming Enumeration object which provides a NameClassPair object.
+     * useful in cases where a client wishes to iterate over the available services without actually getting them.
+     *
+     * @param name name of the context to list
+     * @return Naming Enumeration object which provides a NameClassPair
+     * @throws NamingException if a jndi exception is encountered
+     */
+    @Override
+    public NamingEnumeration<NameClassPair> list(String name) throws NamingException {
+        OSGiURL osgiURL = new OSGiURL(name);
+        List<ServiceReference> serviceReferences = getServiceReferences(osgiURL);
+        return new OSGiServiceNamingEnumeration(callerContext, serviceReferences);
+    }
+
+    /**
+     * produce a NamingEnumeration object that provides Binding objects.
+     *
+     * @param name Composite Name to create the OSGi Name
+     * @return NamingEnumeration object that provides Binding objects
+     * @throws NamingException if jndi exception encountered
+     */
+    @Override
+    public NamingEnumeration<Binding> listBindings(Name name) throws NamingException {
+        return listBindings(name.toString());
+    }
+
+    /**
+     * produce a NamingEnumeration object that provides Binding objects.
+     *
+     * @param name Composite Name to create the OSGi Name
+     * @return NamingEnumeration object that provides Binding objects
+     * @throws NamingException if jndi exception encountered
+     */
+    @Override
+    public NamingEnumeration<Binding> listBindings(String name) throws NamingException {
+        OSGiURL osgiURL = new OSGiURL(name);
+        List<ServiceReference> serviceReferences = getServiceReferences(osgiURL);
+        return new OSGiServiceBindingsEnumeration(callerContext, serviceReferences);
+    }
+
+    private List<ServiceReference> getServiceReferences(OSGiURL osgiURL) throws NamingException {
+        ServiceReference[] refs;
+        String serviceName = osgiURL.getServiceName();
+        String filter = osgiURL.getFilter();
+
+        try {
+            refs = callerContext.getServiceReferences(serviceName, filter);
+            if (refs == null) {
+                refs = getServiceReferencesForJNDIServiceName(osgiURL);
+            }
+        } catch (InvalidSyntaxException e) {
+            // If we get an invalid syntax exception this may dues for queries :- osgi:service/foo/myService
+            // (where "foo/myService" is the
+            // osgi.jndi.service.name and this may read filter=myService which causes an invalid syntax exception)
+            refs = getServiceReferencesForJNDIServiceName(osgiURL);
+        }
+
+        return Arrays.asList(refs);
+    }
+
+    private ServiceReference[] getServiceReferencesForJNDIServiceName(OSGiURL osgiURL) throws NamingException {
+        String jndiServiceName = osgiURL.getJNDIServiceName();
+        ServiceReference[] refs;
+        try {
+            refs = callerContext.getServiceReferences((String) null, "(" + JNDIConstants.JNDI_SERVICENAME + "="
+                    + jndiServiceName + ")");
+            if (refs == null) {
+                throw new NameNotFoundException("No Service Registered with the given URL " + osgiURL.toString());
+            }
+        } catch (InvalidSyntaxException e) {
+            throw new NamingException("Error loading services from service registry with filter: " + e.getFilter());
+        }
+        return refs;
     }
 
 }

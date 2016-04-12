@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.jndi.internal.impl;
 
-import java.util.Iterator;
+import java.util.List;
 
 import javax.naming.Binding;
 import javax.naming.CompositeName;
@@ -32,10 +32,14 @@ import javax.naming.NamingException;
 public class NamingContextBindingsEnumeration implements NamingEnumeration<Binding> {
 
     /**
-     * Underlying enumeration.
+     * Maintain the current position of the enumeration.
      */
-    protected final Iterator<NamingEntry> iterator;
+    private int currentIndex = 0;
 
+    /**
+     * Maintain the enumeration as a list.
+     */
+    private List<NamingEntry> namingEntries;
     /**
      * The context for which this enumeration is being generated.
      */
@@ -45,8 +49,8 @@ public class NamingContextBindingsEnumeration implements NamingEnumeration<Bindi
      * @param entries set of bindings.
      * @param context Context on which bindings are enumerated.
      */
-    public NamingContextBindingsEnumeration(Iterator<NamingEntry> entries, Context context) {
-        iterator = entries;
+    public NamingContextBindingsEnumeration(List<NamingEntry> entries, Context context) {
+        namingEntries = entries;
         this.context = context;
     }
 
@@ -57,7 +61,7 @@ public class NamingContextBindingsEnumeration implements NamingEnumeration<Bindi
 
     @Override
     public boolean hasMore() throws NamingException {
-        return iterator.hasNext();
+        return hasMoreElements();
     }
 
     @Override
@@ -66,7 +70,7 @@ public class NamingContextBindingsEnumeration implements NamingEnumeration<Bindi
 
     @Override
     public boolean hasMoreElements() {
-        return iterator.hasNext();
+        return currentIndex < namingEntries.size();
     }
 
     @Override
@@ -85,7 +89,7 @@ public class NamingContextBindingsEnumeration implements NamingEnumeration<Bindi
      * @throws NamingException
      */
     private Binding nextElementInternal() throws NamingException {
-        NamingEntry entry = iterator.next();
+        NamingEntry entry = namingEntries.get(currentIndex++);
         Object value;
 
         // If the entry is a reference, resolve it

@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.jndi.internal.impl;
 
-import java.util.Iterator;
+import java.util.List;
 
 import javax.naming.NameClassPair;
 import javax.naming.NamingEnumeration;
@@ -30,12 +30,17 @@ import javax.naming.NamingException;
 public class NamingContextEnumeration implements NamingEnumeration<NameClassPair> {
 
     /**
-     * Underlying enumeration.
+     * Maintain the current position of the enumeration.
      */
-    protected final Iterator<NamingEntry> iterator;
+    private int currentIndex = 0;
 
-    public NamingContextEnumeration(Iterator<NamingEntry> entries) {
-        iterator = entries;
+    /**
+     * Maintain the enumeration as a list.
+     */
+    List<NamingEntry> namingEntries;
+
+    public NamingContextEnumeration(List<NamingEntry> entries) {
+        namingEntries = entries;
     }
 
     /**
@@ -51,7 +56,7 @@ public class NamingContextEnumeration implements NamingEnumeration<NameClassPair
      */
     @Override
     public boolean hasMore() throws NamingException {
-        return iterator.hasNext();
+        return hasMoreElements();
     }
 
     /**
@@ -63,12 +68,12 @@ public class NamingContextEnumeration implements NamingEnumeration<NameClassPair
 
     @Override
     public boolean hasMoreElements() {
-        return iterator.hasNext();
+        return currentIndex < namingEntries.size();
     }
 
     @Override
     public NameClassPair nextElement() {
-        NamingEntry entry = iterator.next();
+        NamingEntry entry = namingEntries.get(currentIndex++);
         return new NameClassPair(entry.name, entry.value.getClass().getName());
     }
 }

@@ -22,10 +22,9 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javax.naming.Binding;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -40,38 +39,47 @@ public class OSGiServiceBindingsEnumeration implements NamingEnumeration<Binding
      */
     private BundleContext bundleContext;
     /**
-     * Underlying enumeration.
+     * Maintain current position of the references.
      */
-    protected Iterator<Binding> iterator;
-
+    private int currentIndex = 0;
+    /**
+     * Maintains list of bindings.
+     */
+    private List<Binding> bindings;
     /**
      * ServiceReference list for the given context.
      */
     private List<ServiceReference> references;
 
+    /**
+     * create OSGiServiceBindingsEnumeration instance building the Binding objects.
+     *
+     * @param bundleContext owning bundle context
+     * @param refs          servicereferences of each service of the registry
+     */
     public OSGiServiceBindingsEnumeration(BundleContext bundleContext, List<ServiceReference> refs) {
         this.bundleContext = bundleContext;
-        List<Binding> bindings = buildBindings(refs);
-        iterator = bindings.iterator();
+        bindings = buildBindings(refs);
         references = refs;
     }
 
     private List<Binding> buildBindings(List<ServiceReference> serviceReferencesList) {
-        List<Binding> bindings = new ArrayList<>();
         //name are a string with the service.id number
         //A Binding object contains the name, class of the service, and the service object.
-        serviceReferencesList.stream()
+        Predicate<ServiceReference> filterNotNullReferences =
+                (ServiceReference reference) -> (bundleContext.getService(reference) != null);
+        return serviceReferencesList.stream()
                 .filter(filterNotNullReferences)
-                .forEach(serviceReference -> bindings.add(new Binding(
-                        String.valueOf(serviceReference.getProperty(Constants.SERVICE_ID)),
-                        bundleContext.getService(serviceReference).getClass().getName(),
-                        bundleContext.getService(serviceReference))));
-
-        return bindings;
+                .map(this::buildBindings)
+                .collect(Collectors.toList());
     }
 
-    private Predicate<ServiceReference> filterNotNullReferences =
-            (ServiceReference reference) -> (bundleContext.getService(reference) != null);
+    private Binding buildBindings(ServiceReference serviceReference) {
+        return new Binding(
+                String.valueOf(serviceReference.getProperty(Constants.SERVICE_ID)),
+                bundleContext.getService(serviceReference).getClass().getName(),
+                bundleContext.getService(serviceReference));
+    }
 
     /**
      * Retrieves the next element in the enumeration.
@@ -86,7 +94,7 @@ public class OSGiServiceBindingsEnumeration implements NamingEnumeration<Binding
      */
     @Override
     public boolean hasMore() throws NamingException {
-        return iterator.hasNext();
+        return hasMoreElements();
     }
 
     /**
@@ -94,7 +102,7 @@ public class OSGiServiceBindingsEnumeration implements NamingEnumeration<Binding
      */
     @Override
     public void close() throws NamingException {
-        references.stream().forEach(bundleContext::ungetService);
+        references.forEach(bundleContext::ungetService);
     }
 
     /**
@@ -102,7 +110,7 @@ public class OSGiServiceBindingsEnumeration implements NamingEnumeration<Binding
      */
     @Override
     public boolean hasMoreElements() {
-        return iterator.hasNext();
+        return currentIndex < bindings.size();
     }
 
     /**
@@ -111,6 +119,6 @@ public class OSGiServiceBindingsEnumeration implements NamingEnumeration<Binding
      */
     @Override
     public Binding nextElement() {
-        return iterator.next();
+        return bindings.get(currentIndex++);
     }
 }
