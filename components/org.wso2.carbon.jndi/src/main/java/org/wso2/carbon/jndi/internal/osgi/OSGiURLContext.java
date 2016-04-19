@@ -21,6 +21,8 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.jndi.JNDIConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.jndi.internal.util.NameParserImpl;
 
 import java.util.Arrays;
@@ -43,14 +45,36 @@ import javax.naming.OperationNotSupportedException;
  */
 public class OSGiURLContext implements Context {
 
+    private static final Logger logger = LoggerFactory.getLogger(OSGiURLContext.class);
+
     /**
      * The environment for this context.
      */
     protected Hashtable<String, Object> env;
+
+    /**
+     * Caller bundleContext.
+     */
     protected BundleContext callerContext;
+
+    /**
+     * service path to retrieve a single Object from service registry.
+     */
     protected static final String SERVICE_PATH = "service";
+
+    /**
+     * service path to retrieve callers bundleContext.
+     */
     protected static final String FRAMEWORK_PATH = "framework";
+
+    /**
+     * subContext to get callers bundleContext.
+     */
     protected static final String BUNDLE_CONTEXT = "bundleContext";
+
+    /**
+     * Name parser for this context.
+     */
     protected NameParser parser;
 
     /**
@@ -58,7 +82,7 @@ public class OSGiURLContext implements Context {
      *
      * @param callerContext caller bundle context.
      * @param environment   environment properties to set.
-     * @throws NamingException  If no context can be created for the given environment.
+     * @throws NamingException If no context can be created for the given environment.
      */
     public OSGiURLContext(BundleContext callerContext, Hashtable<String, Object> environment) throws NamingException {
         this.callerContext = callerContext;
@@ -137,10 +161,17 @@ public class OSGiURLContext implements Context {
         Object result;
         try {
             result = getService(ctx, serviceName, filter);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Successfully completed service registry lookup for name : " + lookupName);
+            }
         } catch (NameNotFoundException e) {
             //if NameNotFoundException is occurred, the query might have used JNDI service name for the lookup.
             String jndiServiceName = lookupName.getJNDIServiceName();
             filter = "(" + JNDIConstants.JNDI_SERVICENAME + "=" + jndiServiceName + ")";
+            if (logger.isDebugEnabled()) {
+                logger.debug("No service found for name : " + lookupName +
+                        ". Retrying service registry lookup with jndi-service-name : " + jndiServiceName);
+            }
             result = getService(ctx, null, filter);  //parse as serviceName=null
         }
 
@@ -207,7 +238,7 @@ public class OSGiURLContext implements Context {
      */
     @Override
     public void bind(Name name, Object obj) throws NamingException {
-        throw new OperationNotSupportedException();
+        throw new OperationNotSupportedException("This operation is not supported by the provider");
     }
 
     /**
@@ -223,7 +254,7 @@ public class OSGiURLContext implements Context {
      */
     @Override
     public void bind(String name, Object obj) throws NamingException {
-        throw new OperationNotSupportedException();
+        throw new OperationNotSupportedException("This operation is not supported by the provider");
     }
 
     /**
@@ -245,7 +276,7 @@ public class OSGiURLContext implements Context {
      */
     @Override
     public void rebind(Name name, Object obj) throws NamingException {
-        throw new OperationNotSupportedException();
+        throw new OperationNotSupportedException("This operation is not supported by the provider");
     }
 
     /**
@@ -261,7 +292,7 @@ public class OSGiURLContext implements Context {
      */
     @Override
     public void rebind(String name, Object obj) throws NamingException {
-        throw new OperationNotSupportedException();
+        throw new OperationNotSupportedException("This operation is not supported by the provider");
     }
 
     /**
@@ -280,7 +311,7 @@ public class OSGiURLContext implements Context {
      */
     @Override
     public void unbind(Name name) throws NamingException {
-        throw new OperationNotSupportedException();
+        throw new OperationNotSupportedException("This operation is not supported by the provider");
     }
 
     /**
@@ -295,7 +326,7 @@ public class OSGiURLContext implements Context {
      */
     @Override
     public void unbind(String name) throws NamingException {
-        throw new OperationNotSupportedException();
+        throw new OperationNotSupportedException("This operation is not supported by the provider");
     }
 
     /**
@@ -313,7 +344,7 @@ public class OSGiURLContext implements Context {
      */
     @Override
     public void rename(Name oldName, Name newName) throws NamingException {
-        throw new OperationNotSupportedException();
+        throw new OperationNotSupportedException("This operation is not supported by the provider");
     }
 
     /**
@@ -329,7 +360,7 @@ public class OSGiURLContext implements Context {
      */
     @Override
     public void rename(String oldName, String newName) throws NamingException {
-        throw new OperationNotSupportedException();
+        throw new OperationNotSupportedException("This operation is not supported by the provider");
     }
 
     /**
@@ -361,7 +392,7 @@ public class OSGiURLContext implements Context {
      */
     @Override
     public void destroySubcontext(Name name) throws NamingException {
-        throw new OperationNotSupportedException();
+        throw new OperationNotSupportedException("This operation is not supported by the provider");
     }
 
     /**
@@ -377,7 +408,7 @@ public class OSGiURLContext implements Context {
      */
     @Override
     public void destroySubcontext(String name) throws NamingException {
-        throw new OperationNotSupportedException();
+        throw new OperationNotSupportedException("This operation is not supported by the provider");
     }
 
     /**
@@ -398,7 +429,7 @@ public class OSGiURLContext implements Context {
      */
     @Override
     public Context createSubcontext(Name name) throws NamingException {
-        throw new OperationNotSupportedException();
+        throw new OperationNotSupportedException("This operation is not supported by the provider");
     }
 
     /**
@@ -416,7 +447,7 @@ public class OSGiURLContext implements Context {
      */
     @Override
     public Context createSubcontext(String name) throws NamingException {
-        throw new OperationNotSupportedException();
+        throw new OperationNotSupportedException("This operation is not supported by the provider");
     }
 
     /**
@@ -433,7 +464,7 @@ public class OSGiURLContext implements Context {
      */
     @Override
     public Object lookupLink(Name name) throws NamingException {
-        throw new OperationNotSupportedException();
+        throw new OperationNotSupportedException("This operation is not supported by the provider");
     }
 
     /**
@@ -449,7 +480,7 @@ public class OSGiURLContext implements Context {
      */
     @Override
     public Object lookupLink(String name) throws NamingException {
-        throw new OperationNotSupportedException();
+        throw new OperationNotSupportedException("This operation is not supported by the provider");
     }
 
     /**
@@ -563,7 +594,7 @@ public class OSGiURLContext implements Context {
      */
     @Override
     public String getNameInNamespace() throws NamingException {
-        throw new OperationNotSupportedException();
+        throw new OperationNotSupportedException("This operation is not supported by the provider");
     }
 
     /**
@@ -664,9 +695,13 @@ public class OSGiURLContext implements Context {
                 refs = getServiceReferencesForJNDIServiceName(osgiURL);
             }
         } catch (InvalidSyntaxException e) {
-            // If we get an invalid syntax exception this may dues for queries :- osgi:service/foo/myService
+            // If we get an invalid syntax exception this may due to queries of type :- osgi:service/foo/myService
             // (where "foo/myService" is the
             // osgi.jndi.service.name and this may read filter=myService which causes an invalid syntax exception)
+            if (logger.isDebugEnabled()) {
+                logger.debug("No service found for service : " + serviceName +
+                        ". Retrying service registry lookup with jndi-service-name.");
+            }
             refs = getServiceReferencesForJNDIServiceName(osgiURL);
         }
 
