@@ -151,6 +151,19 @@ public class JNDITest {
     }
 
     /**
+     * This method test the expected exception if a lookup() request is made for a name which is not bind to
+     * any resource.
+     */
+    @Test(dependsOnMethods = "testJNDIContextManagerService", expectedExceptions = {NameNotFoundException.class})
+    public void testJNDIContextManagerWithUnregisteredName() throws NamingException {
+
+        Context context = jndiContextManager.newInitialContext();
+
+        context.lookup("java:comp/env2/new-name");
+
+    }
+
+    /**
      * This method test the code which retrieve the caller's BundleContext instance from the
      * osgi.service.jndi.bundleContext environment variable defined in the OSGi JNDI Specification.
      */
