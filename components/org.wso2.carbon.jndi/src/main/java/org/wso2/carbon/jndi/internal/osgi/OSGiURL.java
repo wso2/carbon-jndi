@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.jndi.internal.osgi;
 
+import org.wso2.carbon.jndi.internal.Constants;
+import org.wso2.carbon.jndi.internal.util.StringManager;
+
 import java.util.Enumeration;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -36,10 +39,15 @@ public class OSGiURL extends CompositeName {
      */
     private static final long serialVersionUID = 7079733784681646165L;
 
+    /**
+     * The string manager for this package.
+     */
+    protected static final StringManager SM = StringManager.getManager(Constants.PACKAGE);
+
     public OSGiURL(String url) throws InvalidNameException, OperationNotSupportedException {
         super(url);
         if (!isValid()) {
-            throw new InvalidNameException("Invalid OSGi URL scheme : " + url);
+            throw new InvalidNameException(SM.getString("osgiUrl.invalidURL", url));
         }
     }
 
@@ -110,14 +118,14 @@ public class OSGiURL extends CompositeName {
                     "osgi:service".equals(servicePathSubContext) && size() > 1;
             Predicate<String> osgiFrameworkFilter = frameworkPathSubContext ->
                     "osgi:framework".equals(frameworkPathSubContext) &&
-                    nameComponents.hasMoreElements() &&
-                    "bundleContext".equals(nameComponents.nextElement());
+                            nameComponents.hasMoreElements() &&
+                            "bundleContext".equals(nameComponents.nextElement());
             Predicate<String> orFilter = osgiFrameworkFilter.or(osgiServiceFilter);
             Optional<String> subContextOptional = Optional.ofNullable(nameComponents.nextElement());
             isValid = subContextOptional.filter(orFilter).isPresent();
 
             if (!isValid && subContextOptional.filter("osgi:servicelist"::equals).isPresent()) {
-                throw new OperationNotSupportedException("Unsupported operation with URL : " + this.toString());
+                throw new OperationNotSupportedException(SM.getString("osgiUrl.unsupportedURL", this.toString()));
             }
         }
         return isValid;
