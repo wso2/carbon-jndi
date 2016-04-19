@@ -43,6 +43,23 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <obrRepository>NONE</obrRepository>
+                    <instructions>
+                        <Include-Resource>
+                            org/wso2/carbon/jndi/internal/LocalStrings.properties=src/main/java/org/wso2/carbon/jndi/internal/LocalStrings.properties
+                        </Include-Resource>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
     <properties>
         <bundle.activator>org.wso2.carbon.jndi.internal.JNDIActivator</bundle.activator>
         <private.package>org.wso2.carbon.jndi.internal.*</private.package>
@@ -57,9 +74,6 @@
             org.osgi.framework;version="${osgi.framework.import.version.range}",
             org.slf4j.*;version="${slf4j.logging.import.version.range}"
         </import.package>
-        <include.resource>
-            {maven-resources},org/wso2/carbon/jndi/internal/LocalStrings.properties=src/main/java/org/wso2/carbon/jndi/internal/LocalStrings.properties
-        </include.resource>
     </properties>
 
 </project>
