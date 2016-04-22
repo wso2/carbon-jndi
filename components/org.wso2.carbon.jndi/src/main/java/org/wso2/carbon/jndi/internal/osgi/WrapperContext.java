@@ -599,8 +599,6 @@ public class WrapperContext implements Context {
      */
     @Override
     public void close() throws NamingException {
-
-        //TODO close all the contexts.
 //        getBackingContext().close();
     }
 
@@ -636,7 +634,6 @@ public class WrapperContext implements Context {
      *                         jndi context has been bound to this thread
      */
     protected String parseName(String name) throws NamingException {
-        //TODO
 
         return name;
 
