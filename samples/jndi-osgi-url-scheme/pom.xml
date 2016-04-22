@@ -14,19 +14,17 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.wso2.carbon.jndi</groupId>
         <artifactId>org.wso2.carbon.jndi.parent</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.0-alpha</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jndi-osgi-url-scheme</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0-alpha</version>
     <packaging>bundle</packaging>
     <name>WSO2 Carbon JNDI - Sample: OSGi URL Scheme</name>
     <url>http://wso2.com</url>
