@@ -28,10 +28,10 @@ import javax.naming.spi.ObjectFactory;
 /**
  * URLContextFactory for osgi: namespace.
  */
-public class OSGiUrlContextFactory implements ObjectFactory {
+public class OSGiURLContextFactory implements ObjectFactory {
     private BundleContext callerContext;
 
-    public OSGiUrlContextFactory(BundleContext callerContext) {
+    public OSGiURLContextFactory(BundleContext callerContext) {
         this.callerContext = callerContext;
     }
 
@@ -52,11 +52,12 @@ public class OSGiUrlContextFactory implements ObjectFactory {
      *                   while attempting to create an object, and no other object factories are
      *                   to be tried.
      */
+    @SuppressWarnings("unchecked")
     @Override
     public Object getObjectInstance(Object obj,
                                     Name name,
                                     Context nameCtx,
                                     Hashtable<?, ?> environment) throws Exception {
-        return new OSGiUrlContext(callerContext, environment);
+        return new OSGiURLContext(callerContext, (Hashtable<String, Object>) environment);
     }
 }

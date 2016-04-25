@@ -19,6 +19,8 @@
 package org.wso2.carbon.jndi.internal.osgi;
 
 import org.osgi.framework.BundleContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.jndi.internal.util.JNDIUtils;
 
 import java.util.HashMap;
@@ -47,6 +49,8 @@ import static org.wso2.carbon.jndi.internal.util.LambdaExceptionUtils.rethrowSup
  * Wrapper for JNDI Context implementation.
  */
 public class WrapperContext implements Context {
+
+    private static final Logger logger = LoggerFactory.getLogger(WrapperContext.class);
 
     private BundleContext bundleContext;
 
@@ -83,10 +87,9 @@ public class WrapperContext implements Context {
     @Override
     public Object lookup(Name name) throws NamingException {
 
-//        if (log.isDebugEnabled()) {
-//            log.debug(SM.getString("selectorContext.methodUsingName", "lookup",
-//                    name));
-//        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Call to method 'lookup' with a Name of '" + name + "'");
+        }
 
         // Strip the URL header
         // Find the appropriate NamingContext according to the current bindings
@@ -105,10 +108,9 @@ public class WrapperContext implements Context {
     @Override
     public Object lookup(String name) throws NamingException {
 
-//        if (log.isDebugEnabled()) {
-//            log.debug(SM.getString("selectorContext.methodUsingString", "lookup",
-//                    name));
-//        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Call to method 'lookup' with a String of '" + name + "'");
+        }
 
         // Strip the URL header
         // Find the appropriate NamingContext according to the current bindings
@@ -273,10 +275,9 @@ public class WrapperContext implements Context {
     @Override
     public NamingEnumeration<NameClassPair> list(Name name) throws NamingException {
 
-//        if (log.isDebugEnabled()) {
-//            log.debug(SM.getString("selectorContext.methodUsingName", "list",
-//                    name));
-//        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Call to method 'list' with a Name of '" + name + "'");
+        }
 
         return getBackingContext(name).list(parseName(name));
     }
@@ -294,10 +295,9 @@ public class WrapperContext implements Context {
     @Override
     public NamingEnumeration<NameClassPair> list(String name) throws NamingException {
 
-//        if (log.isDebugEnabled()) {
-//            log.debug(SM.getString("selectorContext.methodUsingString", "list",
-//                    name));
-//        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Call to method 'list' with a String of '" + name + "'");
+        }
 
         return getBackingContext(name).list(parseName(name));
     }
@@ -319,10 +319,9 @@ public class WrapperContext implements Context {
     @Override
     public NamingEnumeration<Binding> listBindings(Name name) throws NamingException {
 
-//        if (log.isDebugEnabled()) {
-//            log.debug(SM.getString("selectorContext.methodUsingName",
-//                    "listBindings", name));
-//        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Call to method 'listBindings' with a Name of '" + name + "'");
+        }
 
         return getBackingContext(name).listBindings(parseName(name));
     }
@@ -340,10 +339,9 @@ public class WrapperContext implements Context {
     @Override
     public NamingEnumeration<Binding> listBindings(String name) throws NamingException {
 
-//        if (log.isDebugEnabled()) {
-//            log.debug(SM.getString("selectorContext.methodUsingString",
-//                    "listBindings", name));
-//        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Call to method 'listBindings' with a String of '" + name + "'");
+        }
 
         return getBackingContext(name).listBindings(parseName(name));
     }
@@ -447,10 +445,9 @@ public class WrapperContext implements Context {
     @Override
     public Object lookupLink(Name name) throws NamingException {
 
-//        if (log.isDebugEnabled()) {
-//            log.debug(SM.getString("selectorContext.methodUsingName",
-//                    "lookupLink", name));
-//        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Call to method 'lookupLink' with a Name of '" + name + "'");
+        }
 
         return getBackingContext(name).lookupLink(parseName(name));
     }
@@ -468,10 +465,9 @@ public class WrapperContext implements Context {
     @Override
     public Object lookupLink(String name) throws NamingException {
 
-//        if (log.isDebugEnabled()) {
-//            log.debug(SM.getString("selectorContext.methodUsingString",
-//                    "lookupLink", name));
-//        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Call to method 'lookupLink' with a String of '" + name + "'");
+        }
 
         return getBackingContext(name).lookupLink(parseName(name));
     }
@@ -603,8 +599,6 @@ public class WrapperContext implements Context {
      */
     @Override
     public void close() throws NamingException {
-
-        //TODO close all the contexts.
 //        getBackingContext().close();
     }
 
@@ -633,14 +627,13 @@ public class WrapperContext implements Context {
 
     /**
      * Strips the URL header.
-     * @param name to parse via parser.
      *
+     * @param name to parse via parser.
      * @return the parsed name
      * @throws NamingException if there is no "java:" header or if no
      *                         jndi context has been bound to this thread
      */
     protected String parseName(String name) throws NamingException {
-        //TODO
 
         return name;
 
@@ -659,8 +652,8 @@ public class WrapperContext implements Context {
 
     /**
      * Strips the URL header.
-     * @param  name to parse via parser.
      *
+     * @param name to parse via parser.
      * @return the parsed name
      * @throws NamingException if there is no "java:" header or if no
      *                         jndi context has been bound to this thread

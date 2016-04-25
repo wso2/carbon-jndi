@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2</groupId>
         <artifactId>wso2</artifactId>
-        <version>3</version>
+        <version>4</version>
     </parent>
 
     <groupId>org.wso2.carbon.jndi</groupId>
@@ -36,6 +36,7 @@
         <module>features/org.wso2.carbon.jndi.feature</module>
         <module>samples/traditional-client-model</module>
         <module>samples/osgi-jndi-service</module>
+        <module>samples/jndi-osgi-url-scheme</module>
     </modules>
 
     <build>
@@ -79,7 +80,16 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-
+        <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+                <source>${java.version}</source>
+                <target>${java.version}</target>
+            </configuration>
+        </plugin>
+        </plugins>
     </build>
 
     <scm>
@@ -195,8 +205,9 @@
     <properties>
         <carbon.jndi.version>1.0.0-SNAPSHOT</carbon.jndi.version>
         <carbon.jndi.pkg.export.version>1.0.0</carbon.jndi.pkg.export.version>
+        <java.version>1.8</java.version>
 
-        <carbon.kernel.version>5.1.0-m1</carbon.kernel.version>
+        <carbon.kernel.version>5.1.0-alpha</carbon.kernel.version>
         <carbon.feature.plugin.version>2.0.0</carbon.feature.plugin.version>
 
         <!-- OSGi API dependency versions -->

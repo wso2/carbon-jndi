@@ -24,6 +24,7 @@ import org.ops4j.pax.exam.testng.listener.PaxExam;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.jndi.JNDIConstants;
 import org.osgi.service.jndi.JNDIContextManager;
@@ -62,10 +63,12 @@ import javax.inject.Inject;
 import javax.naming.Binding;
 import javax.naming.Context;
 import javax.naming.InitialContext;
+import javax.naming.InvalidNameException;
 import javax.naming.NameClassPair;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
+import javax.naming.OperationNotSupportedException;
 import javax.naming.Reference;
 import javax.naming.StringRefAddr;
 import javax.naming.spi.InitialContextFactory;
@@ -155,6 +158,19 @@ public class JNDITest {
         name = (String) context.lookup("java:comp/env2/name");
 
         assertEquals(name, "jayasoma", "Value not found in JNDI");
+    }
+
+    /**
+     * This method test the expected exception if a lookup() request is made for a name which is not bind to
+     * any resource.
+     */
+    @Test(dependsOnMethods = "testJNDIContextManagerService", expectedExceptions = {NameNotFoundException.class})
+    public void testJNDIContextManagerWithUnregisteredName() throws NamingException {
+
+        Context context = jndiContextManager.newInitialContext();
+
+        context.lookup("java:comp/env2/new-name");
+
     }
 
     /**
@@ -424,7 +440,7 @@ public class JNDITest {
      * We register a service in the bundle context and do a lookup.
      */
     @Test(dependsOnMethods = "testJNDIContextManagerWithEnvironmentContextFactoryBuilder")
-    public void testOSGIUrlWithServiceScheme() throws NamingException {
+    public void testOSGIUrlWithServicePath() throws NamingException {
         FooService fooService = new FooServiceImpl1();
         ServiceRegistration<FooService> fooServiceRegistration =
                 bundleContext.registerService(FooService.class, fooService, null);
@@ -442,7 +458,7 @@ public class JNDITest {
      * In this test we are trying do a osgi:service lookup.
      * We register two services in the bundle context with different service rankings and perform a lookup.
      */
-    @Test(dependsOnMethods = "testOSGIUrlWithServiceScheme")
+    @Test(dependsOnMethods = "testOSGIUrlWithServicePath")
     public void testOSGIUrlWithServiceRanking() throws NamingException {
         Dictionary<String, Object> propertyMap = new Hashtable<>();
         propertyMap.put("service.ranking", 10);
@@ -470,23 +486,10 @@ public class JNDITest {
     }
 
     /**
-     * In this test we are trying do a osgi:servicelist lookup which should return a Context object.
-     */
-    @Test(dependsOnMethods = "testOSGIUrlWithServiceRanking")
-    public void testOSGIUrlWithServiceListScheme() throws NamingException {
-
-        Context context = jndiContextManager.newInitialContext();
-
-        Object service = context.lookup("osgi:servicelist");
-
-        assertTrue(service instanceof Context, "No Context object returned from osg:servicelist scheme");
-    }
-
-    /**
      * In this test we are trying do a osgi:service lookup setting the
      * osgi.jndi.service.name.
      */
-    @Test(dependsOnMethods = "testOSGIUrlWithServiceListScheme")
+    @Test(dependsOnMethods = "testOSGIUrlWithServiceRanking")
     public void testOSGIUrlWithJNDIServiceName() throws NamingException {
         Dictionary<String, Object> propertyMap = new Hashtable<>();
         propertyMap.put("osgi.jndi.service.name", "foo/myService");
@@ -511,10 +514,19 @@ public class JNDITest {
     }
 
     /**
+     * In this test we are trying do a osgi:service lookup with an unregistered service.
+     */
+    @Test(dependsOnMethods = "testOSGIUrlWithJNDIServiceName", expectedExceptions = {NameNotFoundException.class})
+    public void testOSGIUrlWithoutJNDIServiceName() throws NamingException {
+        Context context = jndiContextManager.newInitialContext();
+        context.lookup("osgi:service/foo/myService");
+    }
+
+    /**
      * In this test we are trying do a osgi:service lookup setting the
      * osgi.jndi.service.name.
      */
-    @Test(dependsOnMethods = "testOSGIUrlWithJNDIServiceName")
+    @Test(dependsOnMethods = "testOSGIUrlWithoutJNDIServiceName")
     public void testOSGIUrlWithJNDIServiceName2() throws NamingException {
         Dictionary<String, Object> propertyMap = new Hashtable<>();
         propertyMap.put("osgi.jndi.service.name", "foo");
@@ -539,58 +551,63 @@ public class JNDITest {
     }
 
     /**
+     * In this test we are trying do a osgi:service lookup setting the
+     * osgi.jndi.service.name.
+     */
+    @Test(dependsOnMethods = "testOSGIUrlWithJNDIServiceName2")
+    public void testOSGIUrlWithJNDIServiceName3() throws NamingException {
+        Dictionary<String, Object> propertyMap = new Hashtable<>();
+        propertyMap.put("osgi.jndi.service.name", "foo/bar/myService");
+
+        FooService fooService = new FooServiceImpl1();
+        ServiceRegistration<FooService> fooServiceRegistration = bundleContext.registerService(
+                FooService.class, fooService, propertyMap);
+        Context context = jndiContextManager.newInitialContext();
+
+        Object service = context.lookup("osgi:service/foo/bar/myService");
+
+        assertTrue(service instanceof FooServiceImpl1, "Specified service does not returned" +
+                " OR Specified interface does not registered with bundle context");
+
+        service = context.lookup("osgi:service/org.wso2.carbon.jndi.osgi.services.FooService/" +
+                "(osgi.jndi.service.name=foo/bar/myService)");
+
+        assertTrue(service instanceof FooServiceImpl1, "Specified service does not returned" +
+                " OR Specified interface does not registered with bundle context");
+
+        fooServiceRegistration.unregister();
+    }
+
+    /**
      * In this test we are trying do a osgi:service lookup for a service that is not registered
      */
-    @Test(dependsOnMethods = "testOSGIUrlWithJNDIServiceName2", expectedExceptions = {NameNotFoundException.class})
+    @Test(dependsOnMethods = "testOSGIUrlWithJNDIServiceName3", expectedExceptions = {NameNotFoundException.class})
     public void testOSGIUrlWithUnregisteredService() throws NamingException {
         Context context = jndiContextManager.newInitialContext();
         context.lookup("osgi:service/foo");
     }
 
     /**
-     * In this test we are trying do a osgi:servicelist list() and test the NamingEnumeration object returned.
-     */
-    @Test(dependsOnMethods = "testOSGIUrlWithJNDIServiceName")
-    public void testOSGIUrlWithServiceListList() throws NamingException {
-
-        FooService fooService = new FooServiceImpl1();
-        ServiceRegistration<FooService> fooServiceRegistration = bundleContext.registerService(
-                FooService.class, fooService, null);
-
-        Context context = jndiContextManager.newInitialContext();
-
-        NamingEnumeration<NameClassPair> namingEnumeration =
-                context.list("osgi:servicelist/org.wso2.carbon.jndi.osgi.services.FooService");
-
-        assertTrue(namingEnumeration.hasMoreElements());
-
-        NameClassPair nameClassPair = namingEnumeration.nextElement();
-
-        assertNotNull(nameClassPair, "No NameClassPair returned fo service :" + FooService.class);
-
-        assertEquals(nameClassPair.getName(),
-                String.valueOf(fooServiceRegistration.getReference().getProperty(Constants.SERVICE_ID)));
-        fooServiceRegistration.unregister();
-    }
-
-    /**
      * In this test we are trying do a osgi:service lookup for a service with an invalid filter
      */
-    @Test(dependsOnMethods = "testOSGIUrlWithServiceListList", expectedExceptions = {NamingException.class})
+    @Test(dependsOnMethods = "testOSGIUrlWithUnregisteredService", expectedExceptions = {NamingException.class})
     public void testOSGIUrlListWithUnregisteredService() throws NamingException {
         Context context = jndiContextManager.newInitialContext();
         context.list("osgi:service/(org.wso2.carbon.jndi.osgi.services.FooService");
     }
 
     /**
-     * In this test we are trying do a osgi:servicelist list() and test the NamingEnumeration object returned.
+     * In this test we are trying do a osgi:service list() and test the NamingEnumeration object returned.
      */
-    @Test(dependsOnMethods = "testOSGIUrlWithServiceListList")
+    @Test(dependsOnMethods = "testOSGIUrlListWithUnregisteredService")
     public void testOSGIUrlWithServiceList() throws NamingException {
 
-        FooService fooService = new FooServiceImpl1();
-        ServiceRegistration<FooService> fooServiceRegistration = bundleContext.registerService(
-                FooService.class, fooService, null);
+        FooService fooService1 = new FooServiceImpl1();
+        FooService fooService2 = new FooServiceImpl2();
+        ServiceRegistration<FooService> fooService1Registration = bundleContext.registerService(
+                FooService.class, fooService1, null);
+        ServiceRegistration<FooService> fooService2Registration = bundleContext.registerService(
+                FooService.class, fooService2, null);
 
         Context context = jndiContextManager.newInitialContext();
 
@@ -604,14 +621,28 @@ public class JNDITest {
         assertNotNull(nameClassPair, "No NameClassPair returned fo service :" + FooService.class);
 
         assertEquals(nameClassPair.getName(),
-                String.valueOf(fooServiceRegistration.getReference().getProperty(Constants.SERVICE_ID)));
-        fooServiceRegistration.unregister();
+                String.valueOf(fooService1Registration.getReference().getProperty(Constants.SERVICE_ID)));
+
+        assertTrue(namingEnumeration.hasMoreElements());
+        fooService1Registration.unregister();
+        fooService2Registration.unregister();
     }
 
     /**
-     * In this test we are trying do a osgi:servicelist listBindings() and test the NamingEnumeration object returned.
+     * In this test we are trying do a osgi:service list() and test the NamingEnumeration object returned.
      */
-    @Test(dependsOnMethods = "testOSGIUrlWithServiceList")
+    @Test(dependsOnMethods = "testOSGIUrlWithServiceList", expectedExceptions = {NameNotFoundException.class})
+    public void testOSGIUrlListWithInvalidService() throws NamingException {
+
+        Context context = jndiContextManager.newInitialContext();
+        context.list("osgi:service/org.wso2.carbon.jndi.osgi.services.FooService");
+
+    }
+
+    /**
+     * In this test we are trying do a osgi:service listBindings() and test the NamingEnumeration object returned.
+     */
+    @Test(dependsOnMethods = "testOSGIUrlListWithInvalidService")
     public void testOSGIUrlWithServiceListBindings() throws NamingException {
 
         FooService fooService = new FooServiceImpl1();
@@ -625,7 +656,44 @@ public class JNDITest {
         Context context = jndiContextManager.newInitialContext();
 
         NamingEnumeration<Binding> listBindings =
-                context.listBindings("osgi:servicelist/org.wso2.carbon.jndi.osgi.services.FooService");
+                context.listBindings("osgi:service/org.wso2.carbon.jndi.osgi.services.FooService");
+
+        assertTrue(listBindings.hasMoreElements());
+
+        Binding binding = listBindings.nextElement();
+        assertEquals(binding.getName(),
+                String.valueOf(fooServiceRegistration.getReference().getProperty(Constants.SERVICE_ID)));
+
+        assertNotNull(binding.getObject(),
+                "No Binding object returned fo service :" + FooService.class);
+        assertTrue(listBindings.hasMoreElements());   //we registered two services.
+
+        listBindings.close();
+        fooServiceRegistration.unregister();
+        fooServiceRegistration2.unregister();
+    }
+
+    /**
+     * In this test we are trying do a osgi:service listBindings() and test the NamingEnumeration object returned.
+     */
+    @Test(dependsOnMethods = "testOSGIUrlWithServiceListBindings")
+    public void testOSGIUrlWithJNDINameAndListBindings() throws NamingException {
+
+        Dictionary<String, Object> propertyMap = new Hashtable<>();
+        propertyMap.put("osgi.jndi.service.name", "foo/myService");
+
+        FooService fooService = new FooServiceImpl1();
+        ServiceRegistration<FooService> fooServiceRegistration = bundleContext.registerService(
+                FooService.class, fooService, propertyMap);
+
+        FooService fooService2 = new FooServiceImpl2();
+        ServiceRegistration<FooService> fooServiceRegistration2 = bundleContext.registerService(
+                FooService.class, fooService2, propertyMap);
+
+        Context context = jndiContextManager.newInitialContext();
+
+        NamingEnumeration<Binding> listBindings =
+                context.listBindings("osgi:service/foo/myService");
 
         assertTrue(listBindings.hasMoreElements());
 
@@ -645,7 +713,7 @@ public class JNDITest {
     /**
      * In this test we are trying to obtain the Bundle Context of the owning bundle with osgi:framework/bundleContext.
      */
-    @Test(dependsOnMethods = "testOSGIUrlWithServiceList")
+    @Test(dependsOnMethods = "testOSGIUrlWithServiceListBindings")
     public void testOSGIUrlToGetOwningBundleContext() throws NamingException {
 
         FooService fooService = new FooServiceImpl1();
@@ -657,10 +725,18 @@ public class JNDITest {
         BundleContext owningBundleContext = (BundleContext) context.lookup("osgi:framework/bundleContext");
 
         assertNotNull(owningBundleContext);
+
+        ServiceReference serviceReference =
+                owningBundleContext.getServiceReference("org.wso2.carbon.jndi.osgi.services.FooService");
+
+        Object service = owningBundleContext.getService(serviceReference);
+        assertTrue(service instanceof FooServiceImpl1, "BundleContext returned does not have the " +
+                "expected service registered");
         fooServiceRegistration.unregister();
     }
 
     /**
+<<<<<<< HEAD
      * In this test we check the object conversion service of JNDI provider admin passing a reference object when
      * setting the factory class name.
      */
@@ -686,7 +762,7 @@ public class JNDITest {
      * In this test we check the object conversion service of JNDI provider admin passing a reference object without
      * setting the factory class and adding a StringRefAddr
      */
-    @Test(dependsOnMethods = "testJNDIProviderAdmin")
+    @Test(dependsOnMethods = "testOSGIUrlToGetOwningBundleContext")
     public void testJNDIProviderAdminWithStringRefAddr() throws Exception {
 
         Dictionary<String, Object> propertyMap = new Hashtable<>();
@@ -734,4 +810,39 @@ public class JNDITest {
 
     //todo --> test setting both factoryClass and StringRefAddress,  test without setting any of them
     //todo --> test dir object factory
+    /*
+     * In this test we are trying to do a lookup with an invalid url.
+     */
+    @Test(dependsOnMethods = "testOSGIUrlToGetOwningBundleContext", expectedExceptions = {InvalidNameException.class},
+            expectedExceptionsMessageRegExp = "Invalid OSGi URL scheme : osgi:services/")
+    public void testInvalidOSGIUrlListContextLookup() throws NamingException {
+
+        Context context = jndiContextManager.newInitialContext();
+
+        context.lookup("osgi:services/"); //services is an invalid sub-context
+    }
+
+    /**
+     * In this test we are trying to do a lookup with an invalid url.
+     */
+    @Test(dependsOnMethods = "testInvalidOSGIUrlListContextLookup", expectedExceptions = {NamingException.class})
+    public void testUnregisteredOSGIUrlWithListBindings() throws NamingException {
+
+        Context context = jndiContextManager.newInitialContext();
+
+        context.listBindings("osgi:service/foo"); //services is an invalid sub-context
+    }
+
+    /**
+     * In this test we are trying to do a lookup with an unsupported url eg: osgi:servicelist.
+     */
+    @Test(dependsOnMethods = "testInvalidOSGIUrlListContextLookup",
+            expectedExceptions = {OperationNotSupportedException.class},
+            expectedExceptionsMessageRegExp = "Unsupported operation with URL : osgi:servicelist/")
+    public void testUnsupportedOSGIUrlLookup() throws NamingException {
+
+        Context context = jndiContextManager.newInitialContext();
+
+        context.lookup("osgi:servicelist/"); //services is an invalid sub-context
+    }
 }

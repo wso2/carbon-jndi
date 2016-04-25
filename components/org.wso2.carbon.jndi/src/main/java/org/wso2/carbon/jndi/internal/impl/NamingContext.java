@@ -24,6 +24,7 @@ import org.wso2.carbon.jndi.internal.Constants;
 import org.wso2.carbon.jndi.internal.util.NameParserImpl;
 import org.wso2.carbon.jndi.internal.util.StringManager;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -325,7 +326,7 @@ public class NamingContext implements Context {
         }
 
         if (name.isEmpty()) {
-            return new NamingContextEnumeration(bindings.values().iterator());
+            return new NamingContextEnumeration(new ArrayList<>(bindings.values()));
         }
 
         NamingEntry entry = bindings.get(name.get(0));
@@ -378,7 +379,7 @@ public class NamingContext implements Context {
         }
 
         if (name.isEmpty()) {
-            return new NamingContextBindingsEnumeration(bindings.values().iterator(), this);
+            return new NamingContextBindingsEnumeration(new ArrayList<>(bindings.values()), this);
         }
 
         NamingEntry entry = bindings.get(name.get(0));

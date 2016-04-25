@@ -25,17 +25,17 @@ import org.osgi.framework.ServiceRegistration;
 /**
  * A {@code ServiceFactory} which supplies instance of the OSGiURLContextFactory.
  */
-public class OSGiUrlContextServiceFactory implements ServiceFactory<OSGiUrlContextFactory> {
+public class OSGiURLContextServiceFactory implements ServiceFactory<OSGiURLContextFactory> {
 
     @Override
-    public OSGiUrlContextFactory getService(Bundle bundle,
-                                            ServiceRegistration<OSGiUrlContextFactory> serviceRegistration) {
-        return new OSGiUrlContextFactory(bundle.getBundleContext());
+    public OSGiURLContextFactory getService(Bundle bundle,
+                                            ServiceRegistration<OSGiURLContextFactory> serviceRegistration) {
+        return new OSGiURLContextFactory(bundle.getBundleContext());
     }
 
     @Override
-    public void ungetService(Bundle bundle, ServiceRegistration<OSGiUrlContextFactory> serviceRegistration,
-                             OSGiUrlContextFactory osGiURLContextFactory) {
+    public void ungetService(Bundle bundle, ServiceRegistration<OSGiURLContextFactory> serviceRegistration,
+                             OSGiURLContextFactory osgiURLContextFactory) {
 
     }
 }
