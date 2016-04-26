@@ -736,7 +736,6 @@ public class JNDITest {
     }
 
     /**
-<<<<<<< HEAD
      * In this test we check the object conversion service of JNDI provider admin passing a reference object when
      * setting the factory class name.
      */
@@ -789,17 +788,20 @@ public class JNDITest {
 
     /**
      * In this test we check the object conversion service of JNDI provider admin passing a reference object when
-     * setting the factory class name.//todo failing test
+     * setting both the factory class name and StringRefAddress.
      */
     @Test(dependsOnMethods = "testJNDIProviderAdminWithStringRefAddr")
-    public void testJNDIProviderAdmin() throws Exception {
+    public void testJNDIProviderAdminWithStringAddrAndFactoryClass() throws Exception {
 
         FooObjectFactory fooObjectFactory = new FooObjectFactory();
-        ServiceRegistration<?> fooServiceRegistration = bundleContext.registerService(ObjectFactory.class.getName()
+        ServiceRegistration<?> fooServiceRegistration = bundleContext.registerService(
+                new String[]{ObjectFactory.class.getName(),
+                        fooObjectFactory.getClass().getName()}
                 , fooObjectFactory, null);
 
         Map<String, Object> propertyMap = new HashMap<>();
         Reference ref = new Reference("class.name", FooObjectFactory.class.getName(), "");
+        ref.add(new StringRefAddr("URL", "foo"));
 
         Object convertedObject = jndiProviderAdmin.getObjectInstance(ref, null, null, propertyMap);
 
@@ -808,8 +810,68 @@ public class JNDITest {
         fooServiceRegistration.unregister();
     }
 
-    //todo --> test setting both factoryClass and StringRefAddress,  test without setting any of them
+    /**
+     * In this test we check the object conversion service of JNDI provider admin passing a reference object without
+     * setting both the factory class name and StringRefAddress.
+     */
+    @Test(dependsOnMethods = "testJNDIProviderAdminWithStringAddrAndFactoryClass")
+    public void testJNDIProviderAdminWithoutStringAddrAndFactoryClass() throws Exception {
+
+        FooObjectFactory fooObjectFactory = new FooObjectFactory();
+        ServiceRegistration<?> fooServiceRegistration = bundleContext.registerService(
+                new String[]{ObjectFactory.class.getName(),
+                        fooObjectFactory.getClass().getName()}
+                , fooObjectFactory, null);
+
+        Map<String, Object> propertyMap = new HashMap<>();
+        Reference ref = new Reference(FooObjectFactory.class.getName());
+
+        Object convertedObject = jndiProviderAdmin.getObjectInstance(ref, null, null, propertyMap);
+
+        //JndiProviderAdmin will attempt to convert the object with each Object Factory service
+        //(or Dir Object Factory service for directories) service in ranking order until a non - null value
+        //is returned
+        assertNotNull(convertedObject, "JNDIProviderAdmin could not convert the reference object");
+
+        fooServiceRegistration.unregister();
+    }
+
+    /**
+     * In this test we check the object conversion service of JNDI provider admin passing a
+     * unregistered type of reference
+     */
+    @Test(dependsOnMethods = "testJNDIProviderAdminWithoutStringAddrAndFactoryClass")
+    public void testJNDIProviderAdminWithUnregisteredFactoryClass() throws Exception {
+
+        Map<String, Object> propertyMap = new HashMap<>();
+        Reference ref = new Reference(FooObjectFactory.class.getName());
+
+        //if the reference ObjectFactory is unregistered, a result form a getObjectInstance() method of  a
+        // registered ObjectFactory will be returned
+        Object convertedObject = jndiProviderAdmin.getObjectInstance(ref, null, null, propertyMap);
+
+        assertNotNull(convertedObject, "JNDIProviderAdmin could not convert the reference object");
+    }
+
+    /**
+     * In this test we check the object conversion service of JNDI provider admin passing a reference object when
+     * setting both the factory class name and StringRefAddress.
+     */
+    @Test(dependsOnMethods = "testJNDIProviderAdminWithUnregisteredFactoryClass")
+    public void testJNDIProviderAdminWithUnregisteredFactoryClassName() throws Exception {
+
+        Map<String, Object> propertyMap = new HashMap<>();
+        Reference ref = new Reference("class.name", FooObjectFactory.class.getName(), "");
+        ref.add(new StringRefAddr("URL", "foo"));
+          //todo
+//        Object convertedObject = jndiProviderAdmin.getObjectInstance(ref, null, null, propertyMap);
+//
+//        assertNotNull(convertedObject, "JNDIProviderAdmin could not convert the reference object");
+    }
+
+    //todo unregisdtrered and with factory class, non referenciable object
     //todo --> test dir object factory
+    //todo osgi url with traditional model
     /*
      * In this test we are trying to do a lookup with an invalid url.
      */
