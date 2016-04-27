@@ -21,12 +21,19 @@ package org.wso2.carbon.jndi.osgi.objectfactories;
 import java.util.Hashtable;
 import javax.naming.Context;
 import javax.naming.Name;
-import javax.naming.spi.ObjectFactory;
+import javax.naming.directory.Attributes;
+import javax.naming.spi.DirObjectFactory;
 
-public class FooObjectFactory implements ObjectFactory {
+public class JavaxDirObjectFactory implements DirObjectFactory {
     @Override
     public Object getObjectInstance(Object obj,
                                     Name name, Context nameCtx, Hashtable<?, ?> environment) throws Exception {
-        return "Test Object";
+        return "JAVAX Object";
+    }
+
+    @Override
+    public Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable<?, ?> environment,
+                                    Attributes attrs) throws Exception {
+        return "JAVAX Dir Object";
     }
 }

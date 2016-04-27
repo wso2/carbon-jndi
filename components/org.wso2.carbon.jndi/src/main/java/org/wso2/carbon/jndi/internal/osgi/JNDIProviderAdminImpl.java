@@ -176,7 +176,7 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
             result = Optional.of(referenceObject);
         }
 
-        return result;
+        return result.get();
     }
 
     private Object getReferenceObject(Object refInfo) throws NamingException {
@@ -206,12 +206,15 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
 
     }
 
-    private  Optional<Object> createObjectUsingObjectFactoryClassName(String factoryClassName,
-                                                           Name name,
-                                                           Context context,
-                                                           Hashtable<Object, Object> env,
-                                                           Reference reference) throws Exception {
+    private Optional<Object> createObjectUsingObjectFactoryClassName(String factoryClassName,
+                                                                     Name name,
+                                                                     Context context,
+                                                                     Hashtable<Object, Object> env,
+                                                                     Reference reference) throws Exception {
 
+        if (bundleContext.getServiceReferences(factoryClassName, null) == null) {
+            return Optional.empty();
+        }
         return Arrays.stream(bundleContext.getServiceReferences(factoryClassName, null))
                 .map(bundleContext::getService)
                 .filter(service -> service != null)
@@ -226,11 +229,15 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
     }
 
     private Optional<Object> createObjectUsingDirObjectFactoryClassName(String factoryClassName,
-                                                              Name name,
-                                                              Context context,
-                                                              Hashtable<Object, Object> env,
-                                                              Reference reference,
-                                                              Attributes attributes) throws Exception {
+                                                                        Name name,
+                                                                        Context context,
+                                                                        Hashtable<Object, Object> env,
+                                                                        Reference reference,
+                                                                        Attributes attributes) throws Exception {
+
+        if (bundleContext.getServiceReferences(factoryClassName, null) == null) {
+            return Optional.empty();
+        }
 
         return Arrays.stream(bundleContext.getServiceReferences(factoryClassName, null))
                 .map(bundleContext::getService)
@@ -242,11 +249,11 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
     }
 
     private Optional<Object> createObjectUsingObjectFactoryBuilders(Object referenceObject,
-                                                          Name name,
-                                                          Context context,
-                                                          Hashtable<Object, Object> env,
-                                                          Attributes attributes) throws Exception {
-        Optional<Object> result = null;
+                                                                    Name name,
+                                                                    Context context,
+                                                                    Hashtable<Object, Object> env,
+                                                                    Attributes attributes) throws Exception {
+        Optional<Object> result = Optional.empty();
         Collection<ServiceReference<ObjectFactoryBuilder>> objectFactoryBuilderRef =
                 getServiceReferences(bundleContext, ObjectFactoryBuilder.class, null);
         Optional<ObjectFactory> factory =
@@ -265,9 +272,9 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
     }
 
     private Optional<Object> createObjectUsingStringRefAddress(Reference reference,
-                                                     Name name,
-                                                     Context context,
-                                                     Hashtable<Object, Object> env) throws Exception {
+                                                               Name name,
+                                                               Context context,
+                                                               Hashtable<Object, Object> env) throws Exception {
         Enumeration<RefAddr> refAddrEnumeration = reference.getAll();
         while (refAddrEnumeration.hasMoreElements()) {
             RefAddr refAddr = refAddrEnumeration.nextElement();
@@ -292,9 +299,9 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
     }
 
     private Optional<Object> createDirObjectUsingStringRefAddress(Reference reference,
-                                                        Name name, Context context,
-                                                        Hashtable<Object, Object> env,
-                                                        Attributes attributes) throws Exception {
+                                                                  Name name, Context context,
+                                                                  Hashtable<Object, Object> env,
+                                                                  Attributes attributes) throws Exception {
         Enumeration<RefAddr> refAddrEnumeration = reference.getAll();
         while (refAddrEnumeration.hasMoreElements()) {
             RefAddr refAddr = refAddrEnumeration.nextElement();
@@ -319,8 +326,8 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
     }
 
     private Optional<Object> createObjectUsingObjectFactories(Object reference,
-                                                    Name name, Context context,
-                                                    Hashtable<Object, Object> env) throws Exception {
+                                                              Name name, Context context,
+                                                              Hashtable<Object, Object> env) throws Exception {
 
         return getServiceReferences(bundleContext, ObjectFactory.class, null).stream()
                 .map(bundleContext::getService)
@@ -332,8 +339,8 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
     }
 
     private Optional<Object> createObjectUsingDirObjectFactories(Object reference, Name name,
-                                                       Context context, Hashtable<Object, Object> env,
-                                                       Attributes attributes) throws Exception {
+                                                                 Context context, Hashtable<Object, Object> env,
+                                                                 Attributes attributes) throws Exception {
 
         return getServiceReferences(bundleContext, DirObjectFactory.class, null).stream()
                 .map(bundleContext::getService)

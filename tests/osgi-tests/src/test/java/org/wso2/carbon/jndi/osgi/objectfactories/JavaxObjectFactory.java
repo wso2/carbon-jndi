@@ -23,9 +23,6 @@ import javax.naming.Context;
 import javax.naming.Name;
 import javax.naming.spi.ObjectFactory;
 
-/**
- * Created by nipuni on 3/24/16. //todo
- */
 public class JavaxObjectFactory implements ObjectFactory {
     @Override
     public Object getObjectInstance(Object obj,
