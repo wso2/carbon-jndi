@@ -52,13 +52,32 @@ import static org.wso2.carbon.jndi.internal.util.LambdaExceptionUtils.rethrowFun
  */
 public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
 
+    /**
+     * Caller bundleContext.
+     */
     private BundleContext bundleContext;
+
+    /**
+     * address type of URL.
+     */
     private static final String ADDRESS_TYPE = "URL";
 
     public JNDIProviderAdminImpl(BundleContext bundleContext, ServiceRegistration serviceRegistration) {
         this.bundleContext = bundleContext;
     }
 
+    /**
+     * Resolve the object from the given reference.
+     *
+     * @param refInfo     Reference info
+     * @param name        the JNDI name associated with this reference
+     * @param context     the JNDI context associated with this reference
+     * @param environment the JNDI environment associated with this JNDI context
+     * @return an Object based on the reference passed in, or the original
+     * reference object if the reference could not be resolved.
+     * @throws Exception in the event that an error occurs while attempting to
+     *                   resolve the JNDI reference.
+     */
     @Override
     public Object getObjectInstance(Object refInfo, Name name, Context context, Map<?, ?> environment)
             throws Exception {
@@ -119,6 +138,19 @@ public class JNDIProviderAdminImpl implements JNDIProviderAdmin {
         return scheme;
     }
 
+    /**
+     * Resolve the object from the given reference.
+     *
+     * @param refInfo     Reference info
+     * @param name        the JNDI name associated with this reference
+     * @param context     the JNDI context associated with this reference
+     * @param environment the JNDI environment associated with this JNDI context
+     * @param attributes  the jndi attributes to use when resolving this object
+     * @return an Object based on the reference passed in, or the original
+     * reference object if the reference could not be resolved.
+     * @throws Exception in the event that an error occurs while attempting to
+     *                   resolve the JNDI reference.
+     */
     @Override
     public Object getObjectInstance(Object refInfo, Name name,
                                     Context context, Map<?, ?> environment, Attributes attributes) throws Exception {
