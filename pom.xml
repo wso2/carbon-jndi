@@ -207,8 +207,8 @@
         <carbon.jndi.pkg.export.version>1.0.0</carbon.jndi.pkg.export.version>
         <java.version>1.8</java.version>
 
-        <carbon.kernel.version>5.1.0-alpha</carbon.kernel.version>
-        <carbon.feature.plugin.version>2.0.0</carbon.feature.plugin.version>
+        <carbon.kernel.version>5.1.0</carbon.kernel.version>
+        <carbon.feature.plugin.version>2.0.1</carbon.feature.plugin.version>
 
         <!-- OSGi API dependency versions -->
         <osgi.core.api.version>6.0.0</osgi.core.api.version>
