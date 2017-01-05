@@ -14,7 +14,8 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.wso2.carbon.jndi</groupId>
         <artifactId>carbon-jndi-tests</artifactId>
@@ -92,12 +93,6 @@
             <artifactId>ow2-jta-1.1-spec</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.jacoco</groupId>
-            <artifactId>org.jacoco.ant</artifactId>
-            <scope>test</scope>
-        </dependency>
-
         <dependency>
             <groupId>org.wso2.carbon.jndi</groupId>
             <artifactId>org.wso2.carbon.jndi</artifactId>
@@ -210,21 +205,24 @@
                                     <target xmlns:jacoco="antlib:org.jacoco.ant">
                                         //this task is to provide class/src files locations for jacoco report generation
                                         <taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
-                                            <classpath path="${project.build.directory}" />
+                                            <classpath path="${project.build.directory}"/>
                                         </taskdef>
                                         <jacoco:report>
                                             <executiondata>
-                                                <file file="${project.build.directory}/jacoco.exec" />
+                                                <file file="${project.build.directory}/jacoco.exec"/>
                                             </executiondata>
                                             <structure name="Carbon JNDI OSGi Tests">
                                                 <classfiles>
-                                                    <fileset dir="../../components/org.wso2.carbon.jndi/target/classes" />
+                                                    <fileset
+                                                            dir="../../components/org.wso2.carbon.jndi/target/classes">
+                                                        <exclude name="org/wso2/carbon/jndi/internal/spi/**/*.class"/>
+                                                    </fileset>
                                                 </classfiles>
                                                 <sourcefiles encoding="UTF-8">
-                                                    <fileset dir="../../components/org.wso2.carbon.jndi/src" />
+                                                    <fileset dir="../../components/org.wso2.carbon.jndi/src"/>
                                                 </sourcefiles>
                                             </structure>
-                                            <html destdir="${project.build.directory}/site/jacoco" />
+                                            <html destdir="${project.build.directory}/site/jacoco"/>
                                         </jacoco:report>
                                     </target>
                                 </configuration>

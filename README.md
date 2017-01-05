@@ -12,15 +12,17 @@ Usually JNDI usages in Java SE heavily depends on the single flat classpath mode
 
 ## Features:
 
-* In-memory JNDI service provider implementation.
+* In-memory JNDI service provider implementation which can be used in both OSGi and non-OSGi environment.
 * OSGi JNDI Service specification implementation.
 * Mechanism to plug in custom InitialContextFactory and ObjectFactories in an OSGi environment.
 
 ## Getting Started
 
+### Using Carbon JNDI in OSGi environment
+
 A client bundle which needs to use JNDI in OSGi should use the JNDI Context Manager service. Creating an InitialContext using new InitialContext() method is not recommended in OSGi environments due to class loading complexities.
 
-### 1) Creating an InitialContext from the JNDIContextManager service
+#### 1) Creating an InitialContext from the JNDIContextManager service
 
 ```java
 ServiceReference<JNDIContextManager> contextManagerSRef = bundleContext.getServiceReference(
@@ -35,7 +37,7 @@ Context initialContext = jndiContextManager.newInitialContext();
 DataSource dataSource = (DataSource) initialContext.lookup("java:comp/env/jdbc/wso2carbonDB");
 ```
 
-### 2) Creating an InitialContext from the traditional client API
+#### 2) Creating an InitialContext from the traditional client API
 
 This way of creating the InitialContext is also supported by the OSGi JNDI Service specification.
   
@@ -47,7 +49,7 @@ Context envContext = initialContext.createSubcontext("java:comp/env");
 DataSource dataSource = (DataSource) envContext.lookup("jdbc/wso2carbonDB");
 ```
 
-### 3) Creating InitialContext with declarative services
+#### 3) Creating InitialContext with declarative services
 
 Following service component retrieves the JNDIContextManager and create InitialContext.
 
@@ -73,7 +75,7 @@ public class ActivatorComponent {
 }
 ```
 
-### OSGI URL Scheme
+#### OSGI URL Scheme
 
 An OSGI URL scheme is available for users to access services in service registry. This URL scheme can have the format
     osgi:service/<query> or osgi:framework/bundleContext
@@ -130,6 +132,28 @@ This NameClassPair object will include the name and class of each service in the
          }
 
 ```
+
+### Using Carbon JNDI in non-OSGi environment
+
+Carbon JNDI provides In-memory JNDI service provider implementation which can be used to bind objects to In-memory JNDI context. The `InMemoryInitialContextFactory` JNDI service provider makes use of `NamingContext` to achieve this.
+Following is a sample code which makes use of In-memory JNDI service provider implementation.
+The `org.wso2.carbon.jndi.internal.spi.builder.DefaultContextFactoryBuilder`, which acts as the default initial context factory builder, has to be set in the NamingManager. This is required in non-OSGi environment which uses the InitialContext API.
+````
+        try {
+            //InitialContextFactoryBuilder has to be set to NamingManager to use InitialContext API
+            NamingManager.setInitialContextFactoryBuilder(new DefaultContextFactoryBuilder());
+
+            //Binding an object and retrieving it using jndi lookup
+            Context context = new InitialContext();
+            context.createSubcontext("java:comp");
+            context.bind("java:comp/name", "test");
+            logger.info("The name retrieved via jndi lookup: " + (String) context.lookup("java:comp/name"));
+
+        } catch (NamingException e) {
+            logger.error("Error occurred while using carbon In-memory JNDI service provider implementation.", e);
+        }
+````
+
 For full source code, see [Carbon JNDI samples] (samples).
 ## Download 
 
