@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2016, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2017, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.wso2.carbon.jndi.spi;
 import org.testng.annotations.Test;
 import org.wso2.carbon.jndi.internal.spi.builder.DefaultContextFactoryBuilder;
 
+import java.util.Hashtable;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingEnumeration;
@@ -34,10 +35,9 @@ public class JNDITest {
 
     @Test public void testInMemoryJNDIContextProvider() throws NamingException {
 
-        //InitialContextFactoryBuilder has to be set to NamingManager to use InitialContext API
+        //InitialContextFactoryBuilder has to be set to NamingManager to use InitialContext API while creating
+        // JNDI context when Context.INITIAL_CONTEXT_FACTORY is not defined
         NamingManager.setInitialContextFactoryBuilder(new DefaultContextFactoryBuilder());
-
-        //Binding an object and retrieving it using jndi lookup
         Context context = new InitialContext();
         context.createSubcontext("java:comp");
         context.bind("java:comp/name", "test1");
@@ -59,6 +59,17 @@ public class JNDITest {
         context.rename("java:comp", "java:comp1");
         name = (String) context.lookup("java:comp1/name");
         assertEquals(name, "test2", "Value not found in JNDI");
+
+        context.close();
+
+        //Creating JNDI context using InitialContext API with Context.INITIAL_CONTEXT_FACTORY defined
+        Hashtable<String, String> environment = new Hashtable<>();
+        environment.put(Context.INITIAL_CONTEXT_FACTORY, "org.wso2.carbon.jndi.internal.InMemoryInitialContextFactory");
+        context = new InitialContext(environment);
+        context.createSubcontext("java:comp");
+        context.bind("java:comp/id", "ID1");
+        name = (String) context.lookup("java:comp/id");
+        assertEquals(name, "ID1", "Value not found in JNDI");
 
     }
 

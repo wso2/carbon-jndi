@@ -38,6 +38,7 @@
         <module>samples/traditional-client-model</module>
         <module>samples/osgi-jndi-service</module>
         <module>samples/jndi-osgi-url-scheme</module>
+        <module>samples/jndi-spi-sample</module>
     </modules>
 
     <build>
