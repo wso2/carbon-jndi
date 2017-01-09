@@ -68,9 +68,9 @@ public class WrapperContext implements Context {
      */
     public static final String PREFIX = "java:";
 
-    public WrapperContext(BundleContext bundleContext, Optional<Context> deletedContext, Hashtable<?, ?> env) {
+    public WrapperContext(BundleContext bundleContext, Optional<Context> backingContext, Hashtable<?, ?> env) {
         this.bundleContext = bundleContext;
-        this.backingContext = deletedContext;
+        this.backingContext = backingContext;
         this.env = (Hashtable<?, ?>) env.clone();
     }
 
