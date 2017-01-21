@@ -17,7 +17,7 @@ package org.wso2.carbon.jndi.sample.spi;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.jndi.internal.spi.builder.DefaultContextFactoryBuilder;
+import org.wso2.carbon.jndi.internal.osgi.builder.DefaultContextFactoryBuilder;
 
 import java.util.Hashtable;
 import javax.naming.Context;
@@ -66,6 +66,7 @@ public class JNDIClient {
             context.bind("java:comp/id", "ID1");
             logger.info("The name retrieved using \"java:comp/id\" jndi lookup: " + (String) context
                     .lookup("java:comp/id"));
+            context.close();
 
         } catch (NamingException e) {
             logger.error("Error occurred while using carbon-jndi In-Memory JNDI context service provider", e);

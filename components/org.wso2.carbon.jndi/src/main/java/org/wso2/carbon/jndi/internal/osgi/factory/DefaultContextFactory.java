@@ -21,10 +21,13 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleReference;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.jndi.JNDIContextManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.wso2.carbon.jndi.internal.DataHolder;
+import org.wso2.carbon.jndi.internal.InMemoryInitialContextFactory;
 
 import java.util.Hashtable;
 import java.util.Optional;
-
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -40,6 +43,8 @@ import static org.wso2.carbon.jndi.internal.util.LambdaExceptionUtils.rethrowFun
  */
 public class DefaultContextFactory implements InitialContextFactory {
 
+    private static final Logger logger = LoggerFactory.getLogger(DefaultContextFactory.class);
+
     /**
      * Creates an initial context from the JNDIContextManager OSGi service retrieved from the caller bundle context.
      *
@@ -52,21 +57,51 @@ public class DefaultContextFactory implements InitialContextFactory {
     @Override
     public Context getInitialContext(Hashtable<?, ?> environment) throws NamingException {
 
-        //1) Find the BundleContext of the caller of this method. If a BundleContext cannot be found
-        //   then throw NoInitialContext Exception.
-        Optional<BundleContext> bundleContextOptional = getCallersBundleContext(environment);
-        bundleContextOptional.orElseThrow(NoInitialContextException::new);
+        if (DataHolder.getInstance().getBundleContext() == null) {
+            //Get initial context object for non-OSGi environment.
+            return getInitialContextForSPI(environment);
+        } else {
 
-        //2) Retrieve the JNDIContextManager service from the BundleContext and invoke getInitialContext method.
-        //   If no BundleContext is found then, throw NoInitialContext Exception.
-        BundleContext callersBC = bundleContextOptional.get();
-        Optional<ServiceReference<JNDIContextManager>> contextManagerSR = Optional.ofNullable(
-                callersBC.getServiceReference(JNDIContextManager.class));
+            //1) Find the BundleContext of the caller of this method. If a BundleContext cannot be found
+            //   then throw NoInitialContext Exception.
+            Optional<BundleContext> bundleContextOptional = getCallersBundleContext(environment);
+            bundleContextOptional.orElseThrow(NoInitialContextException::new);
 
-        return contextManagerSR
-                .map(callersBC::getService)
-                .map(rethrowFunction(jndiContextManager -> jndiContextManager.newInitialContext(environment)))
-                .orElseThrow(NoInitialContextException::new);
+            //2) Retrieve the JNDIContextManager service from the BundleContext and invoke getInitialContext method.
+            //   If no BundleContext is found then, throw NoInitialContext Exception.
+            BundleContext callersBC = bundleContextOptional.get();
+            Optional<ServiceReference<JNDIContextManager>> contextManagerSR = Optional
+                    .ofNullable(callersBC.getServiceReference(JNDIContextManager.class));
+
+            return contextManagerSR.map(callersBC::getService)
+                    .map(rethrowFunction(jndiContextManager -> jndiContextManager.newInitialContext(environment)))
+                    .orElseThrow(NoInitialContextException::new);
+        }
+    }
+
+    /**
+     * Creates an initial context for non-OSGi environment from the INITIAL_CONTEXT_FACTORY class and if it is not
+     * defined creates it using InMemoryInitialContextFactory by default.
+     *
+     * @param environment The environment to be used in the creation of the initial context.
+     * @return A non-null initial context object that implements the Context interface.
+     * @throws NamingException If an initial context can't be created.
+     */
+    public Context getInitialContextForSPI(Hashtable<?, ?> environment) throws NamingException {
+        String initialContextFactoryClassName = (String) environment.get(Context.INITIAL_CONTEXT_FACTORY);
+        if (initialContextFactoryClassName == null || initialContextFactoryClassName.isEmpty()) {
+            return new InMemoryInitialContextFactory().getInitialContext(environment);
+        }
+
+        try {
+            InitialContextFactory ctxFactory = (InitialContextFactory) Class.forName(initialContextFactoryClassName)
+                    .newInstance();
+            return ctxFactory.getInitialContext(environment);
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            logger.error("Couldn't create initial context using the InitialContextFactory class "
+                    + initialContextFactoryClassName, e);
+            throw new NamingException(e.getMessage());
+        }
     }
 
     /**

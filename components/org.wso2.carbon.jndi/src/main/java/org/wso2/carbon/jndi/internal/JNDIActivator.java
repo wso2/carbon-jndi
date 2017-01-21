@@ -68,6 +68,8 @@ public class JNDIActivator implements BundleActivator {
 
             logger.debug("Registering JNDIContextManager OSGi service.");
             bundleContext.registerService(JNDIContextManager.class, new JNDIContextManagerServiceFactory(), null);
+
+            DataHolder.getInstance().setBundleContext(bundleContext);
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
         }

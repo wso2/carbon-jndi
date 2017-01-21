@@ -17,7 +17,7 @@
 package org.wso2.carbon.jndi.spi;
 
 import org.testng.annotations.Test;
-import org.wso2.carbon.jndi.internal.spi.builder.DefaultContextFactoryBuilder;
+import org.wso2.carbon.jndi.internal.osgi.builder.DefaultContextFactoryBuilder;
 
 import java.util.Hashtable;
 import javax.naming.Context;
@@ -33,7 +33,8 @@ import static org.testng.Assert.assertEquals;
  */
 public class JNDITest {
 
-    @Test public void testInMemoryJNDIContextProvider() throws NamingException {
+    @Test
+    public void testInMemoryJNDIContextProvider() throws NamingException {
 
         //InitialContextFactoryBuilder has to be set to NamingManager to use InitialContext API while creating
         // JNDI context when Context.INITIAL_CONTEXT_FACTORY is not defined
