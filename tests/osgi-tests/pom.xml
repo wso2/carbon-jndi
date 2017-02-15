@@ -49,12 +49,6 @@
     </build>
 
     <dependencies>
-        <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>osgi-test-util</artifactId>
-            <version>${carbon.kernel.version}</version>
-            <scope>test</scope>
-        </dependency>
 
         <!-- Pax Exam Dependencies-->
         <dependency>
@@ -102,6 +96,23 @@
             <groupId>org.wso2.carbon.jndi</groupId>
             <artifactId>org.wso2.carbon.jndi</artifactId>
             <!--<scope>test</scope>-->
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.core</artifactId>
+        </dependency>
+
+        <!--Test Distribution-->
+        <dependency>
+            <groupId>org.wso2.carbon.jndi</groupId>
+            <artifactId>wso2carbon-jndi-test</artifactId>
+            <type>zip</type>
+        </dependency>
+
+        <!--Pax exam Container Carbon-->
+        <dependency>
+            <groupId>org.wso2.carbon</groupId>
+            <artifactId>org.wso2.carbon.container</artifactId>
         </dependency>
     </dependencies>
 
@@ -163,10 +174,17 @@
                                 <org.ops4j.pax.url.mvn.localRepository>${settings.localRepository}
                                 </org.ops4j.pax.url.mvn.localRepository>
                                 <jacoco-agent.destfile>${project.build.directory}/jacoco.exec</jacoco-agent.destfile>
+                                <org.wso2.carbon.test.default.distribution>
+                                    org.wso2.carbon.jndi:wso2carbon-jndi-test
+                                </org.wso2.carbon.test.default.distribution>
+                                <org.ops4j.pax.logging.DefaultServiceLog.level>ERROR</org.ops4j.pax.logging.DefaultServiceLog.level>
                             </systemPropertyVariables>
                             <suiteXmlFiles>
                                 <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
                             </suiteXmlFiles>
+                            <environmentVariables>
+                                <JAVA_OPTS>${jcoverage.command}</JAVA_OPTS>
+                            </environmentVariables>
                         </configuration>
                     </plugin>
                     <plugin>
@@ -180,9 +198,11 @@
                                     <goal>prepare-agent</goal>
                                 </goals>
                                 <configuration>
+                                    <propertyName>jcoverage.command</propertyName>
                                     <includes>
                                         <include>org.wso2.carbon*</include>
                                     </includes>
+                                    <append>true</append>
                                 </configuration>
                             </execution>
                             <execution>
@@ -199,7 +219,6 @@
                             </execution>
                         </executions>
                     </plugin>
-
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-antrun-plugin</artifactId>
@@ -241,7 +260,6 @@
                             </dependency>
                         </dependencies>
                     </plugin>
-
                     <plugin>
                         <groupId>org.ops4j.pax.exam</groupId>
                         <artifactId>maven-paxexam-plugin</artifactId>
@@ -259,5 +277,4 @@
             </build>
         </profile>
     </profiles>
-
 </project>

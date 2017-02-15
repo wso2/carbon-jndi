@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2</groupId>
         <artifactId>wso2</artifactId>
-        <version>4</version>
+        <version>5</version>
     </parent>
 
     <groupId>org.wso2.carbon.jndi</groupId>
@@ -195,8 +195,40 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon</groupId>
-                <artifactId>carbon-kernel-osgi-test-util</artifactId>
+                <artifactId>org.wso2.carbon.pax.exam.feature</artifactId>
                 <version>${carbon.kernel.version}</version>
+                <type>zip</type>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon</groupId>
+                <artifactId>org.wso2.carbon.core</artifactId>
+                <version>${carbon.kernel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon</groupId>
+                <artifactId>org.wso2.carbon.kernel.feature</artifactId>
+                <version>${carbon.kernel.version}</version>
+                <type>zip</type>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon</groupId>
+                <artifactId>org.wso2.carbon.runtime.feature</artifactId>
+                <version>${carbon.kernel.version}</version>
+                <type>zip</type>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon</groupId>
+                <artifactId>org.wso2.carbon.container</artifactId>
+                <version>${carbon.kernel.version}</version>
+            </dependency>
+
+            <!--Test Distribution-->
+            <dependency>
+                <groupId>org.wso2.carbon.jndi</groupId>
+                <artifactId>wso2carbon-jndi-test</artifactId>
+                <version>${carbon.jndi.version}</version>
+                <type>zip</type>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -207,8 +239,8 @@
         <carbon.jndi.pkg.export.version>1.0.0</carbon.jndi.pkg.export.version>
         <java.version>1.8</java.version>
 
-        <carbon.kernel.version>5.1.0</carbon.kernel.version>
-        <carbon.feature.plugin.version>2.0.1</carbon.feature.plugin.version>
+        <carbon.kernel.version>5.2.0-m3</carbon.kernel.version>
+        <carbon.feature.plugin.version>3.0.0</carbon.feature.plugin.version>
 
         <!-- OSGi API dependency versions -->
         <osgi.core.api.version>6.0.0</osgi.core.api.version>
