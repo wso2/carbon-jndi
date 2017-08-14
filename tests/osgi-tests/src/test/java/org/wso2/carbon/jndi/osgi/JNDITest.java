@@ -41,7 +41,7 @@ import org.wso2.carbon.jndi.osgi.services.FooService;
 import org.wso2.carbon.jndi.osgi.services.impl.FooServiceImpl1;
 import org.wso2.carbon.jndi.osgi.services.impl.FooServiceImpl2;
 import org.wso2.carbon.jndi.osgi.util.DummyBundleClassLoader;
-import org.wso2.carbon.kernel.utils.CarbonServerInfo;
+import org.wso2.carbon.kernel.CarbonServerInfo;
 
 import java.util.Arrays;
 import java.util.Dictionary;
