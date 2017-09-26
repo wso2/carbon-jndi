@@ -27,7 +27,7 @@
     <groupId>org.wso2.carbon.jndi</groupId>
     <artifactId>org.wso2.carbon.jndi.parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.5-SNAPSHOT</version>
+    <version>1.0.5</version>
     <name>WSO2 Carbon JNDI - Parent</name>
 
     <modules>
@@ -96,7 +96,7 @@
         <url>https://github.com/wso2/carbon-jndi.git</url>
         <developerConnection>scm:git:https://github.com/wso2/carbon-jndi.git</developerConnection>
         <connection>scm:git:https://github.com/wso2/carbon-jndi.git</connection>
-        <tag>HEAD</tag>
+        <tag>v1.0.5</tag>
     </scm>
 
     <dependencyManagement>
@@ -268,7 +268,7 @@
     </dependencyManagement>
 
     <properties>
-        <carbon.jndi.version>1.0.5-SNAPSHOT</carbon.jndi.version>
+        <carbon.jndi.version>1.0.5</carbon.jndi.version>
         <carbon.jndi.pkg.export.version>1.0.0</carbon.jndi.pkg.export.version>
         <java.version>1.8</java.version>
 
