@@ -27,12 +27,12 @@ import org.wso2.carbon.jndi.internal.java.JavaURLContextFactory;
 import org.wso2.carbon.jndi.internal.osgi.JNDIContextManagerServiceFactory;
 import org.wso2.carbon.jndi.internal.osgi.OSGiURLContextServiceFactory;
 import org.wso2.carbon.jndi.internal.osgi.builder.DefaultContextFactoryBuilder;
-import org.wso2.carbon.jndi.internal.osgi.builder.DefaultObjectFactoryBuilder;
+import org.wso2.carbon.jndi.internal.osgi.builder.JREInitialContextFactoryBuilder;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
-
 import javax.naming.spi.InitialContextFactory;
+import javax.naming.spi.InitialContextFactoryBuilder;
 import javax.naming.spi.NamingManager;
 import javax.naming.spi.ObjectFactory;
 
@@ -50,7 +50,8 @@ public class JNDIActivator implements BundleActivator {
 
         try {
             NamingManager.setInitialContextFactoryBuilder(new DefaultContextFactoryBuilder());
-            NamingManager.setObjectFactoryBuilder(new DefaultObjectFactoryBuilder());
+            // Until DefaultObjectFactory provide default implementation, use JRE build-in object factory
+            // NamingManager.setObjectFactoryBuilder(new DefaultObjectFactoryBuilder());
 
             Dictionary<String, String> propertyMap = new Hashtable<>();
             propertyMap.put(JNDIConstants.JNDI_URLSCHEME, "java");
@@ -68,6 +69,10 @@ public class JNDIActivator implements BundleActivator {
 
             logger.debug("Registering JNDIContextManager OSGi service.");
             bundleContext.registerService(JNDIContextManager.class, new JNDIContextManagerServiceFactory(), null);
+
+            logger.debug("Registering JREInitialContextFactoryBuilder service for JRE built-in context providers");
+            bundleContext.registerService(InitialContextFactoryBuilder.class,
+                    new JREInitialContextFactoryBuilder(), null);
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
         }
