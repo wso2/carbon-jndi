@@ -264,6 +264,12 @@
                 <version>${carbon.touchpoint.version}</version>
                 <type>zip</type>
             </dependency>
+
+            <dependency>
+                <groupId>org.wso2.orbit.org.owasp.encoder</groupId>
+                <artifactId>encoder</artifactId>
+                <version>${owasp.encoder.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -327,6 +333,7 @@
         <ow2.jta.spec.version>1.0.12</ow2.jta.spec.version>
         <javax.inject.version>1</javax.inject.version>
         <jacoco.version>0.7.5.201505241946</jacoco.version>
+        <owasp.encoder.version>1.2.0.wso2v2</owasp.encoder.version>
 
     </properties>
 

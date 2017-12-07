@@ -20,6 +20,7 @@ package org.wso2.carbon.jndi.internal.util;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,7 +129,7 @@ public class JNDIUtils {
         } catch (InvalidSyntaxException ignored) {
             // This branch cannot be invoked. Since the filter is always correct.
             // However I am logging the exception in case
-            logger.error("Filter syntax is invalid: " + filter, ignored);
+            logger.error(getEncodedString("Filter syntax is invalid: " + filter), ignored);
             return Collections.<ServiceReference<S>>emptyList();
         }
     }
@@ -142,5 +143,14 @@ public class JNDIUtils {
     public static <S> Optional<S> getService(BundleContext bundleContext,
                                              ServiceReference<S> serviceReference) {
         return Optional.ofNullable(bundleContext.getService(serviceReference));
+    }
+
+    private static String getEncodedString(String str) {
+        String cleanedString = str.replace('\n', '_').replace('\r', '_');
+        cleanedString = Encode.forHtml(cleanedString);
+        if (!cleanedString.equals(str)) {
+            cleanedString += " (Encoded)";
+        }
+        return cleanedString;
     }
 }
